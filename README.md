@@ -13,8 +13,8 @@ configure; executable discovery does not verify account access.
 
 ## See it work
 
-[Watch the real 57-second demo](https://urdia-launch.groovycalf1.chatgpt.site/#demo) ·
-[Visit the launch website](https://urdia-launch.groovycalf1.chatgpt.site)
+[Watch the real 57-second demo](https://urdia.tech/#demo) ·
+[Visit the launch website](https://urdia.tech)
 
 ![Real Urdia calculator task with separate host checks and project tests passing](docs/images/calculator-demo.png)
 
