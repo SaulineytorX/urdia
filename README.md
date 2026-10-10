@@ -11,6 +11,18 @@ Ubuntu 24.04 x86_64, including WSL for Windows testing. Native Windows is deferr
 experimental per-task mode; manual sending remains the default. Provider accounts belong to the agents you
 configure; executable discovery does not verify account access.
 
+## See it work
+
+[Watch the real 57-second demo](https://urdia-launch.groovycalf1.chatgpt.site/#demo) ·
+[Visit the launch website](https://urdia-launch.groovycalf1.chatgpt.site)
+
+![Real Urdia calculator task with separate host checks and project tests passing](docs/images/calculator-demo.png)
+
+One development run: Jev selected the configured Codex low-effort profile in
+116 ms; the operator approved one edit; 12 host checks and 17 project tests passed.
+These are observations from that run, not a benchmark, a savings claim or a
+verification of remote model identity. Routing does not grant tool permissions.
+
 ## Start here
 
 Follow [installation](docs/installation.md) and [guided setup](docs/guided-setup.md).
