@@ -1,0 +1,5 @@
+# Copy to /etc/urdia/typellm.conf only after pinning and starting this exact
+# model in a loopback-only SGLang service.
+URDIA_TYPELLM_MODEL=Qwen/example@immutable-revision
+URDIA_TYPELLM_SGLANG_URL=http://127.0.0.1:30000
+URDIA_TYPELLM_TOKENIZER=/opt/urdia/models/example-tokenizer

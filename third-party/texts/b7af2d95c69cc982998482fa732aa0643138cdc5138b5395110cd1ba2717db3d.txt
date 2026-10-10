@@ -1,0 +1,119 @@
+// Copyright 2015-2016 Brian Smith.
+//
+// Permission to use, copy, modify, and/or distribute this software for any
+// purpose with or without fee is hereby granted, provided that the above
+// copyright notice and this permission notice appear in all copies.
+//
+// THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+// WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+// MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
+// SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+// WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION
+// OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
+// CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
+//! Testing framework.
+//!
+//! Unlike the rest of *ring*, this testing framework uses panics pretty
+//! liberally. It was originally designed for internal use--it drives most of
+//! *ring*'s internal tests, and so it is optimized for getting *ring*'s tests
+//! written quickly at the expense of some usability. The documentation is
+//! lacking. The best way to learn it is to look at some examples. The digest
+//! tests are the most complicated because they use named sections. Other tests
+//! avoid named sections and so are easier to understand.
+//!
+//! # Examples
+//!
+//! ## Writing Tests
+//!
+//! Input files look like this:
+//!
+//! ```text
+//! # This is a comment.
+//!
+//! HMAC = SHA1
+//! Input = "My test data"
+//! Key = ""
+//! Output = 61afdecb95429ef494d61fdee15990cabf0826fc
+//!
+//! HMAC = SHA256
+//! Input = "Sample message for keylen<blocklen"
+//! Key = 000102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F
+//! Output = A28CF43130EE696A98F14A37678B56BCFCBDD9E5CF69717FECF5480F0EBDF790
+//! ```
+//!
+//! Test cases are separated with blank lines. Note how the bytes of the `Key`
+//! attribute are specified as a quoted string in the first test case and as
+//! hex in the second test case; you can use whichever form is more convenient
+//! and you can mix and match within the same file. The empty sequence of bytes
+//! can only be represented with the quoted string form (`""`).
+//!
+//! Here's how you would consume the test data:
+//!
+//! ```ignore
+//! use ring::test;
+//!
+//! test::run(test::test_vector_file!("hmac_tests.txt"), |section, test_case| {
+//!     assert_eq!(section, ""); // This test doesn't use named sections.
+//!
+//!     let digest_alg = test_case.consume_digest_alg("HMAC");
+//!     let input = test_case.consume_bytes("Input");
+//!     let key = test_case.consume_bytes("Key");
+//!     let output = test_case.consume_bytes("Output");
+//!
+//!     // Do the actual testing here
+//! });
+//! ```
+//!
+//! Note that `consume_digest_alg` automatically maps the string "SHA1" to a
+//! reference to `digest::SHA1_FOR_LEGACY_USE_ONLY`, "SHA256" to
+//! `digest::SHA256`, etc.
+//!
+//! ## Output When a Test Fails
+//!
+//! When a test case fails, the framework automatically prints out the test
+//! case. If the test case failed with a panic, then the backtrace of the panic
+//! will be printed too. For example, let's say the failing test case looks
+//! like this:
+//!
+//! ```text
+//! Curve = P-256
+//! a = 2b11cb945c8cf152ffa4c9c2b1c965b019b35d0b7626919ef0ae6cb9d232f8af
+//! b = 18905f76a53755c679fb732b7762251075ba95fc5fedb60179e730d418a9143c
+//! r = 18905f76a53755c679fb732b7762251075ba95fc5fedb60179e730d418a9143c
+//! ```
+//! If the test fails, this will be printed (if `$RUST_BACKTRACE` is `1`):
+//!
+//! ```text
+//! src/example_tests.txt: Test panicked.
+//! Curve = P-256
+//! a = 2b11cb945c8cf152ffa4c9c2b1c965b019b35d0b7626919ef0ae6cb9d232f8af
+//! b = 18905f76a53755c679fb732b7762251075ba95fc5fedb60179e730d418a9143c
+//! r = 18905f76a53755c679fb732b7762251075ba95fc5fedb60179e730d418a9143c
+//! thread 'example_test' panicked at 'Test failed.', src\testutil:206
+//! stack backtrace:
+//!    0:     0x7ff654a05c7c - std::rt::lang_start::h61f4934e780b4dfc
+//!    1:     0x7ff654a04f32 - std::rt::lang_start::h61f4934e780b4dfc
+//!    2:     0x7ff6549f505d - std::panicking::rust_panic_with_hook::hfe203e3083c2b544
+//!    3:     0x7ff654a0825b - rust_begin_unwind
+//!    4:     0x7ff6549f63af - std::panicking::begin_panic_fmt::h484cd47786497f03
+//!    5:     0x7ff654a07e9b - rust_begin_unwind
+//!    6:     0x7ff654a0ae95 - core::panicking::panic_fmt::h257ceb0aa351d801
+//!    7:     0x7ff654a0b190 - core::panicking::panic::h4bb1497076d04ab9
+//!    8:     0x7ff65496dc41 - from_file<closure>
+//!                         at C:\Users\Example\example\<core macros>:4
+//!    9:     0x7ff65496d49c - example_test
+//!                         at C:\Users\Example\example\src\example.rs:652
+//!   10:     0x7ff6549d192a - test::stats::Summary::new::ha139494ed2e4e01f
+//!   11:     0x7ff6549d51a2 - test::stats::Summary::new::ha139494ed2e4e01f
+//!   12:     0x7ff654a0a911 - _rust_maybe_catch_panic
+//!   13:     0x7ff6549d56dd - test::stats::Summary::new::ha139494ed2e4e01f
+//!   14:     0x7ff654a03783 - std::sys::thread::Thread::new::h2b08da6cd2517f79
+//!   15:     0x7ff968518101 - BaseThreadInitThunk
+//! ```
+//!
+//! Notice that the output shows the name of the data file
+//! (`src/example_tests.txt`), the test inputs that led to the failure, and the
+//! stack trace to the line in the test code that panicked: entry 9 in the
+//! stack trace pointing to line 652 of the file `example.rs`.
+

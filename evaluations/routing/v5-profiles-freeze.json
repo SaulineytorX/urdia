@@ -1,0 +1,17 @@
+{
+  "schema": "urdia-profile-evaluation-freeze-v1",
+  "date": "2026-10-02",
+  "fixture_fingerprint": "23787cef784b8a05ee999757b6fc09e7554922acd3da07655d657172a036bb22",
+  "model": "jev-1.13.0",
+  "host_policy": "fixture-only",
+  "automatic_execution": false,
+  "files_sha256": {
+    "evaluations/routing/v5-profiles.json": "9b5b8dac692405a75b7240e55adfc5ddd3a1af87ed5a769fa4851cec0ebebd27",
+    "evaluations/routing/schema-v5-profiles.json": "e201c45ef69e4e82b3ea918a9670479ca70d7ba76795b156c5fd5d3d18a7196e",
+    "crates/urdia-cli/src/routing_eval.rs": "df882dfcb48d993a6ea5cc6475f2b0182a74fb1754e853269668c400595107f4",
+    "crates/urdia-cli/src/profile_evaluation.rs": "9113c3a952e4c8532e823e4cc095431f29b30d43e31a33517a5d1f11df6e8283",
+    "crates/urdia-routing/src/lib.rs": "4a64ddfb2446266ce0e55fbbcf4d5c62b18505fc68df6a0511c71ce8d2e57e55",
+    "crates/urdia-decision-jev/src/lib.rs": "c2151aa2b9af599a7a2526c1461a062612cdff23f079cfcc55200bd6a16821b1",
+    "evaluations/routing/results/jev-1.13.0-v5-profiles-development-1x-2026-10-02.json": "06f2f2bf1f791c6d97a552e632fa92ce8caf5088c3cb2f12f8ca9825c603105a"
+  }
+}

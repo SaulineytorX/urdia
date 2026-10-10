@@ -1,0 +1,38 @@
+// Copyright 2015-2023 Brian Smith.
+//
+// Permission to use, copy, modify, and/or distribute this software for any
+// purpose with or without fee is hereby granted, provided that the above
+// copyright notice and this permission notice appear in all copies.
+//
+// THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+// WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+// MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
+// SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+// WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION
+// OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
+// CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
+//! Multi-precision integers.
+//!
+//! # Modular Arithmetic.
+//!
+//! Modular arithmetic is done in finite commutative rings ℤ/mℤ for some
+//! modulus *m*. We work in finite commutative rings instead of finite fields
+//! because the RSA public modulus *n* is not prime, which means ℤ/nℤ contains
+//! nonzero elements that have no multiplicative inverse, so ℤ/nℤ is not a
+//! finite field.
+//!
+//! In some calculations we need to deal with multiple rings at once. For
+//! example, RSA private key operations operate in the rings ℤ/nℤ, ℤ/pℤ, and
+//! ℤ/qℤ. Types and functions dealing with such rings are all parameterized
+//! over a type `M` to ensure that we don't wrongly mix up the math, e.g. by
+//! multiplying an element of ℤ/pℤ by an element of ℤ/qℤ modulo q. This follows
+//! the "unit" pattern described in [Static checking of units in Servo].
+//!
+//! `Elem` also uses the static unit checking pattern to statically track the
+//! Montgomery factors that need to be canceled out in each value using it's
+//! `E` parameter.
+//!
+//! [Static checking of units in Servo]:
+//!     https://blog.mozilla.org/research/2014/06/23/static-checking-of-units-in-servo/
+

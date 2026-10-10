@@ -1,0 +1,141 @@
+#! /usr/bin/env perl
+# Copyright 2010-2016 The OpenSSL Project Authors. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+#
+# ====================================================================
+# Written by Andy Polyakov <appro@openssl.org> for the OpenSSL
+# project.
+# ====================================================================
+#
+# March, May, June 2010
+#
+# The module implements "4-bit" GCM GHASH function and underlying
+# single multiplication operation in GF(2^128). "4-bit" means that it
+# uses 256 bytes per-key table [+64/128 bytes fixed table]. It has two
+# code paths: vanilla x86 and vanilla SSE. Former will be executed on
+# 486 and Pentium, latter on all others. SSE GHASH features so called
+# "528B" variant of "4-bit" method utilizing additional 256+16 bytes
+# of per-key storage [+512 bytes shared table]. Performance results
+# are for streamed GHASH subroutine and are expressed in cycles per
+# processed byte, less is better:
+#
+#		gcc 2.95.3(*)	SSE assembler	x86 assembler
+#
+# Pentium	105/111(**)	-		50
+# PIII		68 /75		12.2		24
+# P4		125/125		17.8		84(***)
+# Opteron	66 /70		10.1		30
+# Core2		54 /67		8.4		18
+# Atom		105/105		16.8		53
+# VIA Nano	69 /71		13.0		27
+#
+# (*)	gcc 3.4.x was observed to generate few percent slower code,
+#	which is one of reasons why 2.95.3 results were chosen,
+#	another reason is lack of 3.4.x results for older CPUs;
+#	comparison with SSE results is not completely fair, because C
+#	results are for vanilla "256B" implementation, while
+#	assembler results are for "528B";-)
+# (**)	second number is result for code compiled with -fPIC flag,
+#	which is actually more relevant, because assembler code is
+#	position-independent;
+# (***)	see comment in non-MMX routine for further details;
+#
+# To summarize, it's >2-5 times faster than gcc-generated code. To
+# anchor it to something else SHA1 assembler processes one byte in
+# ~7 cycles on contemporary x86 cores. As for choice of MMX/SSE
+# in particular, see comment at the end of the file...
+
+# May 2010
+#
+# Add PCLMULQDQ version performing at 2.10 cycles per processed byte.
+# The question is how close is it to theoretical limit? The pclmulqdq
+# instruction latency appears to be 14 cycles and there can't be more
+# than 2 of them executing at any given time. This means that single
+# Karatsuba multiplication would take 28 cycles *plus* few cycles for
+# pre- and post-processing. Then multiplication has to be followed by
+# modulo-reduction. Given that aggregated reduction method [see
+# "Carry-less Multiplication and Its Usage for Computing the GCM Mode"
+# white paper by Intel] allows you to perform reduction only once in
+# a while we can assume that asymptotic performance can be estimated
+# as (28+Tmod/Naggr)/16, where Tmod is time to perform reduction
+# and Naggr is the aggregation factor.
+#
+# Before we proceed to this implementation let's have closer look at
+# the best-performing code suggested by Intel in their white paper.
+# By tracing inter-register dependencies Tmod is estimated as ~19
+# cycles and Naggr chosen by Intel is 4, resulting in 2.05 cycles per
+# processed byte. As implied, this is quite optimistic estimate,
+# because it does not account for Karatsuba pre- and post-processing,
+# which for a single multiplication is ~5 cycles. Unfortunately Intel
+# does not provide performance data for GHASH alone. But benchmarking
+# AES_GCM_encrypt ripped out of Fig. 15 of the white paper with aadt
+# alone resulted in 2.46 cycles per byte of out 16KB buffer. Note that
+# the result accounts even for pre-computing of degrees of the hash
+# key H, but its portion is negligible at 16KB buffer size.
+#
+# Moving on to the implementation in question. Tmod is estimated as
+# ~13 cycles and Naggr is 2, giving asymptotic performance of ...
+# 2.16. How is it possible that measured performance is better than
+# optimistic theoretical estimate? There is one thing Intel failed
+# to recognize. By serializing GHASH with CTR in same subroutine
+# former's performance is really limited to above (Tmul + Tmod/Naggr)
+# equation. But if GHASH procedure is detached, the modulo-reduction
+# can be interleaved with Naggr-1 multiplications at instruction level
+# and under ideal conditions even disappear from the equation. So that
+# optimistic theoretical estimate for this implementation is ...
+# 28/16=1.75, and not 2.16. Well, it's probably way too optimistic,
+# at least for such small Naggr. I'd argue that (28+Tproc/Naggr),
+# where Tproc is time required for Karatsuba pre- and post-processing,
+# is more realistic estimate. In this case it gives ... 1.91 cycles.
+# Or in other words, depending on how well we can interleave reduction
+# and one of the two multiplications the performance should be between
+# 1.91 and 2.16. As already mentioned, this implementation processes
+# one byte out of 8KB buffer in 2.10 cycles, while x86_64 counterpart
+# - in 2.02. x86_64 performance is better, because larger register
+# bank allows to interleave reduction and multiplication better.
+#
+# Does it make sense to increase Naggr? To start with it's virtually
+# impossible in 32-bit mode, because of limited register bank
+# capacity. Otherwise improvement has to be weighed against slower
+# setup, as well as code size and complexity increase. As even
+# optimistic estimate doesn't promise 30% performance improvement,
+# there are currently no plans to increase Naggr.
+#
+# Special thanks to David Woodhouse for providing access to a
+# Westmere-based system on behalf of Intel Open Source Technology Centre.
+
+# January 2010
+#
+# Tweaked to optimize transitions between integer and FP operations
+# on same XMM register, PCLMULQDQ subroutine was measured to process
+# one byte in 2.07 cycles on Sandy Bridge, and in 2.12 - on Westmere.
+# The minor regression on Westmere is outweighed by ~15% improvement
+# on Sandy Bridge. Strangely enough attempt to modify 64-bit code in
+# similar manner resulted in almost 20% degradation on Sandy Bridge,
+# where original 64-bit code processes one byte in 1.95 cycles.
+
+#####################################################################
+# For reference, AMD Bulldozer processes one byte in 1.98 cycles in
+# 32-bit mode and 1.89 in 64-bit.
+
+# February 2013
+#
+# Overhaul: aggregate Karatsuba post-processing, improve ILP in
+# reduction_alg9. Resulting performance is 1.96 cycles per byte on
+# Westmere, 1.95 - on Sandy/Ivy Bridge, 1.76 - on Bulldozer.
+
+# This file was patched in BoringSSL to remove the variable-time 4-bit
+# implementation.
+

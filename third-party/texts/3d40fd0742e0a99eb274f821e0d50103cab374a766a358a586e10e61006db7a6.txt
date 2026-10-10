@@ -1,0 +1,46 @@
+#! /usr/bin/env perl
+# Copyright 2015-2016 The OpenSSL Project Authors. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
+######################################################################
+## Constant-time SSSE3 AES core implementation.
+## version 0.1
+##
+## By Mike Hamburg (Stanford University), 2009
+## Public domain.
+##
+## For details see http://shiftleft.org/papers/vector_aes/ and
+## http://crypto.stanford.edu/vpaes/.
+##
+######################################################################
+# ARMv8 NEON adaptation by <appro@openssl.org>
+#
+# Reason for undertaken effort is that there is at least one popular
+# SoC based on Cortex-A53 that doesn't have crypto extensions.
+#
+#                   CBC enc     ECB enc/dec(*)   [bit-sliced enc/dec]
+# Cortex-A53        21.5        18.1/20.6        [17.5/19.8         ]
+# Cortex-A57        36.0(**)    20.4/24.9(**)    [14.4/16.6         ]
+# X-Gene            45.9(**)    45.8/57.7(**)    [33.1/37.6(**)     ]
+# Denver(***)       16.6(**)    15.1/17.8(**)    [8.80/9.93         ]
+# Apple A7(***)     22.7(**)    10.9/14.3        [8.45/10.0         ]
+# Mongoose(***)     26.3(**)    21.0/25.0(**)    [13.3/16.8         ]
+#
+# (*)	ECB denotes approximate result for parallelizable modes
+#	such as CBC decrypt, CTR, etc.;
+# (**)	these results are worse than scalar compiler-generated
+#	code, but it's constant-time and therefore preferred;
+# (***)	presented for reference/comparison purposes;
+

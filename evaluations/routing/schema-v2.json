@@ -1,0 +1,307 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://urdia.dev/schemas/routing-evaluation-v2.schema.json",
+  "title": "Urdia routing evaluation corpus v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "corpus_id",
+    "language",
+    "model",
+    "candidate_id_scope",
+    "privacy",
+    "cases"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "urdia.routing-evaluation/v2"
+    },
+    "corpus_id": {
+      "const": "urdia-routing-v2"
+    },
+    "language": {
+      "const": "en"
+    },
+    "model": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "provider",
+        "model",
+        "version_pinned"
+      ],
+      "properties": {
+        "provider": {
+          "const": "typesafe"
+        },
+        "model": {
+          "const": "jev-1.13.0"
+        },
+        "version_pinned": {
+          "const": true
+        }
+      }
+    },
+    "candidate_id_scope": {
+      "const": "case_local"
+    },
+    "privacy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "persist_raw_response",
+        "persist_api_key",
+        "fixture_contains_real_secrets"
+      ],
+      "properties": {
+        "persist_raw_response": {
+          "const": false
+        },
+        "persist_api_key": {
+          "const": false
+        },
+        "fixture_contains_real_secrets": {
+          "const": false
+        }
+      }
+    },
+    "cases": {
+      "type": "array",
+      "minItems": 27,
+      "maxItems": 27,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/case"
+      }
+    }
+  },
+  "$defs": {
+    "candidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "kind",
+        "description",
+        "host_effect",
+        "escalation"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^c_[A-Za-z0-9]{6}$"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "history_read",
+            "focused_edit",
+            "security_review",
+            "refactor_plan",
+            "clarify",
+            "unsupported_capability",
+            "deny_destructive",
+            "trusted_scope",
+            "operator_review",
+            "safe_analysis",
+            "network_review",
+            "provider_fallback",
+            "decompose_review",
+            "block_secret_egress",
+            "one_shot_review"
+          ]
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2048
+        },
+        "host_effect": {
+          "type": "string",
+          "enum": [
+            "read_only",
+            "permission_checked_edit",
+            "review_only",
+            "clarification",
+            "unsupported",
+            "deny",
+            "trusted_policy_candidate",
+            "network_review",
+            "provider_fallback",
+            "decompose",
+            "secret_block",
+            "one_shot_review"
+          ]
+        },
+        "escalation": {
+          "type": "boolean"
+        }
+      }
+    },
+    "case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "split",
+        "input",
+        "candidates",
+        "expected"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9_]+$",
+          "maxLength": 64
+        },
+        "split": {
+          "type": "string",
+          "enum": [
+            "development",
+            "held_out",
+            "adversarial"
+          ]
+        },
+        "input": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "objective",
+            "state"
+          ],
+          "properties": {
+            "objective": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 16384
+            },
+            "state": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        },
+        "candidates": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 5,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/candidate"
+          }
+        },
+        "expected": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "acceptable_routes",
+            "must_escalate",
+            "risk_confidence_profile",
+            "fallback_reasons",
+            "semantic_only_authorization"
+          ],
+          "properties": {
+            "acceptable_routes": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "pattern": "^c_[A-Za-z0-9]{6}$"
+              }
+            },
+            "must_escalate": {
+              "type": "boolean"
+            },
+            "risk_confidence_profile": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "risk_band",
+                "confidence_band",
+                "low_confidence_action"
+              ],
+              "properties": {
+                "risk_band": {
+                  "type": "string",
+                  "enum": [
+                    "low",
+                    "medium",
+                    "high",
+                    "critical"
+                  ]
+                },
+                "confidence_band": {
+                  "type": "string",
+                  "enum": [
+                    "high",
+                    "medium",
+                    "low"
+                  ]
+                },
+                "low_confidence_action": {
+                  "type": "string",
+                  "enum": [
+                    "fallback",
+                    "clarify",
+                    "escalate",
+                    "deny"
+                  ]
+                }
+              }
+            },
+            "fallback_reasons": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "enum": [
+                  "low_confidence",
+                  "no_candidate_fit",
+                  "provider_unavailable",
+                  "provider_timeout",
+                  "invalid_response",
+                  "unknown_candidate",
+                  "policy_inactive",
+                  "out_of_scope",
+                  "unsupported_capability",
+                  "network_denied",
+                  "secret_egress",
+                  "destructive_request",
+                  "ambiguous_objective",
+                  "mixed_scope"
+                ]
+              }
+            },
+            "semantic_only_authorization": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "decision_is_advisory",
+                "may_activate_trusted_session",
+                "may_grant_permission",
+                "host_must_recheck_scope"
+              ],
+              "properties": {
+                "decision_is_advisory": {
+                  "const": true
+                },
+                "may_activate_trusted_session": {
+                  "const": false
+                },
+                "may_grant_permission": {
+                  "const": false
+                },
+                "host_must_recheck_scope": {
+                  "const": true
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

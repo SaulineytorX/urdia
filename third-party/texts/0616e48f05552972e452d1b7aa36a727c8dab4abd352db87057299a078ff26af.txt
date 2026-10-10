@@ -1,0 +1,185 @@
+#! /usr/bin/env perl
+
+# Copyright (c) 2022, ARM Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+#========================================================================
+# Written by Fangming Fang <fangming.fang@arm.com> for the OpenSSL project,
+# derived from https://github.com/ARM-software/AArch64cryptolib, original
+# author Samuel Lee <Samuel.Lee@arm.com>.
+#========================================================================
+#
+# Approach - assume we don't want to reload constants, so reserve ~half of
+# vector register file for constants
+#
+# main loop to act on 4 16B blocks per iteration, and then do modulo of the
+# accumulated intermediate hashes from the 4 blocks
+#
+#  ____________________________________________________
+# |                                                    |
+# | PRE                                                |
+# |____________________________________________________|
+# |                |                |                  |
+# | CTR block 4k+8 | AES block 4k+4 | GHASH block 4k+0 |
+# |________________|________________|__________________|
+# |                |                |                  |
+# | CTR block 4k+9 | AES block 4k+5 | GHASH block 4k+1 |
+# |________________|________________|__________________|
+# |                |                |                  |
+# | CTR block 4k+10| AES block 4k+6 | GHASH block 4k+2 |
+# |________________|________________|__________________|
+# |                |                |                  |
+# | CTR block 4k+11| AES block 4k+7 | GHASH block 4k+3 |
+# |________________|____(mostly)____|__________________|
+# |                                                    |
+# | MODULO                                             |
+# |____________________________________________________|
+#
+# PRE: Ensure previous generated intermediate hash is aligned and merged with
+# result for GHASH 4k+0
+#
+# EXT low_acc, low_acc, low_acc, #8
+# EOR res_curr (4k+0), res_curr (4k+0), low_acc
+#
+# CTR block: Increment and byte reverse counter in scalar registers and transfer
+# to SIMD registers
+#
+# REV     ctr32, rev_ctr32
+# ORR     ctr64, constctr96_top32, ctr32, LSL #32
+# // Keeping this in scalar registers to free up space in SIMD RF
+# INS     ctr_next.d[0], constctr96_bottom64
+# INS     ctr_next.d[1], ctr64X
+# ADD     rev_ctr32, #1
+#
+# AES block:
+#
+# Do AES encryption/decryption on CTR block X and EOR it with input block X.
+# Take 256 bytes key below for example. Doing small trick here of loading input
+# in scalar registers, EORing with last key and then transferring Given we are
+# very constrained in our ASIMD registers this is quite important
+#
+#     Encrypt:
+# LDR     input_low, [ input_ptr  ], #8
+# LDR     input_high, [ input_ptr  ], #8
+# EOR     input_low, k14_low
+# EOR     input_high, k14_high
+# INS     res_curr.d[0], input_low
+# INS     res_curr.d[1], input_high
+# AESE    ctr_curr, k0; AESMC ctr_curr, ctr_curr
+# AESE    ctr_curr, k1; AESMC ctr_curr, ctr_curr
+# AESE    ctr_curr, k2; AESMC ctr_curr, ctr_curr
+# AESE    ctr_curr, k3; AESMC ctr_curr, ctr_curr
+# AESE    ctr_curr, k4; AESMC ctr_curr, ctr_curr
+# AESE    ctr_curr, k5; AESMC ctr_curr, ctr_curr
+# AESE    ctr_curr, k6; AESMC ctr_curr, ctr_curr
+# AESE    ctr_curr, k7; AESMC ctr_curr, ctr_curr
+# AESE    ctr_curr, k8; AESMC ctr_curr, ctr_curr
+# AESE    ctr_curr, k9; AESMC ctr_curr, ctr_curr
+# AESE    ctr_curr, k10; AESMC ctr_curr, ctr_curr
+# AESE    ctr_curr, k11; AESMC ctr_curr, ctr_curr
+# AESE    ctr_curr, k12; AESMC ctr_curr, ctr_curr
+# AESE    ctr_curr, k13
+# EOR     res_curr, res_curr, ctr_curr
+# ST1     { res_curr.16b  }, [ output_ptr  ], #16
+#
+#     Decrypt:
+# AESE    ctr_curr, k0; AESMC ctr_curr, ctr_curr
+# AESE    ctr_curr, k1; AESMC ctr_curr, ctr_curr
+# AESE    ctr_curr, k2; AESMC ctr_curr, ctr_curr
+# AESE    ctr_curr, k3; AESMC ctr_curr, ctr_curr
+# AESE    ctr_curr, k4; AESMC ctr_curr, ctr_curr
+# AESE    ctr_curr, k5; AESMC ctr_curr, ctr_curr
+# AESE    ctr_curr, k6; AESMC ctr_curr, ctr_curr
+# AESE    ctr_curr, k7; AESMC ctr_curr, ctr_curr
+# AESE    ctr_curr, k8; AESMC ctr_curr, ctr_curr
+# AESE    ctr_curr, k9; AESMC ctr_curr, ctr_curr
+# AESE    ctr_curr, k10; AESMC ctr_curr, ctr_curr
+# AESE    ctr_curr, k11; AESMC ctr_curr, ctr_curr
+# AESE    ctr_curr, k12; AESMC ctr_curr, ctr_curr
+# AESE    ctr_curr, k13
+# LDR     res_curr, [ input_ptr  ], #16
+# EOR     res_curr, res_curr, ctr_curr
+# MOV     output_low, res_curr.d[0]
+# MOV     output_high, res_curr.d[1]
+# EOR     output_low, k14_low
+# EOR     output_high, k14_high
+# STP     output_low, output_high, [ output_ptr  ], #16
+#
+# GHASH block X:
+#     Do 128b karatsuba polynomial multiplication on block. We only have
+#     64b->128b polynomial multipliers, naively that means we need to do 4 64b
+#     multiplies to generate a 128b.
+#
+# multiplication:
+#     Pmull(A,B) == (Pmull(Ah,Bh)<<128 | Pmull(Al,Bl)) ^
+#                   (Pmull(Ah,Bl) ^ Pmull(Al,Bh))<<64
+#
+#     The idea behind Karatsuba multiplication is that we can do just 3 64b
+#     multiplies:
+#     Pmull(A,B) == (Pmull(Ah,Bh)<<128 | Pmull(Al,Bl)) ^
+#                   (Pmull(Ah^Al,Bh^Bl) ^ Pmull(Ah,Bh) ^
+#                   Pmull(Al,Bl))<<64
+#
+#     There is some complication here because the bit order of GHASH's PMULL is
+#     reversed compared to elsewhere, so we are multiplying with "twisted"
+#     powers of H
+#
+# Note: We can PMULL directly into the acc_x in first GHASH of the loop
+#
+# Note: For scheduling big cores we want to split the processing to happen over
+#       two loop iterations - otherwise the critical path latency dominates the
+#       performance.
+#
+#       This has a knock on effect on register pressure, so we have to be a bit
+#       more clever with our temporary registers than indicated here
+#
+# REV64   res_curr, res_curr
+# INS     t_m.d[0], res_curr.d[1]
+# EOR     t_m.8B, t_m.8B, res_curr.8B
+# PMULL2  t_h, res_curr, HX
+# PMULL   t_l, res_curr, HX
+# PMULL   t_m, t_m, HX_k
+# EOR     acc_h, acc_h, t_h
+# EOR     acc_l, acc_l, t_l
+# EOR     acc_m, acc_m, t_m
+#
+# MODULO: take the partial accumulators (~representing sum of 256b
+#         multiplication results), from GHASH and do modulo reduction on them
+#         There is some complication here because the bit order of GHASH's
+#         PMULL is reversed compared to elsewhere, so we are doing modulo with
+#         a reversed constant
+#
+# EOR     acc_m, acc_m, acc_h
+# EOR     acc_m, acc_m, acc_l                // Finish off karatsuba processing
+# PMULL   t_mod, acc_h, mod_constant
+# EXT     acc_h, acc_h, acc_h, #8
+# EOR     acc_m, acc_m, acc_h
+# EOR     acc_m, acc_m, t_mod
+# PMULL   acc_h, acc_m, mod_constant
+# EXT     acc_m, acc_m, acc_m, #8
+# EOR     acc_l, acc_l, acc_h
+# EOR     acc_l, acc_l, acc_m
+#
+# This code was then modified to merge the AES-128-GCM, AES-192-GCM, and
+# AES-256-GCM implementations into a single function to reduce size. We move the
+# last two round keys into consistent registers across all sizes, as they're
+# treated special. Then, after rounds 0 through 8, we added some branches to
+# conditionally run rounds 9-10 (AES-192 + AES-256) and 11-12 (AES-256), before
+# merging back into code which finishes up the last two rounds.
+#
+# There is a mostly decision to be made around how much parallel work goes
+# before or after the conditional part. We attempted to preserve the original
+# scheduling where possible, but it's possible other schedulings are more
+# optimal with the current ordering.
+

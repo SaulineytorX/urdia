@@ -1,0 +1,11 @@
+Urdia
+Copyright 2026 Urdia contributors
+
+This product includes software developed by the Agent Client Protocol project,
+used through its Apache-2.0 licensed Rust SDK. Urdia does not bundle Qwen Code,
+Codex, Claude Code, Jev, Laya, TypeLLM, model weights, or provider credentials.
+
+Candidate upstream license/notice texts and their provenance are indexed in
+THIRD_PARTY_NOTICES.md and third-party/inventory.json. Final distribution
+notice review remains pending.
+

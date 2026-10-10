@@ -1,0 +1,9 @@
+# External ACP providers are explicit executable-plus-argument definitions.
+# Urdia never evaluates these values through a shell.
+
+[[provider]]
+id = "my-agent"
+name = "My ACP Agent"
+command = "/absolute/path/to/my-agent"
+args = ["--acp"]
+

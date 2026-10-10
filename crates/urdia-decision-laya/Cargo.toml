@@ -1,0 +1,25 @@
+[package]
+name = "urdia-decision-laya"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+description = "Local Laya decision provider adapter for Urdia"
+
+[dependencies]
+async-trait.workspace = true
+reqwest.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+tokio.workspace = true
+urdia-core = { path = "../urdia-core", version = "0.1.0" }
+
+[dev-dependencies]
+axum.workspace = true
+tempfile.workspace = true
+tokio.workspace = true
+
+[lints]
+workspace = true

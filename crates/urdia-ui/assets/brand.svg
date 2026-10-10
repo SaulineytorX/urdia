@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <title>Urdia — Portal</title>
+  <defs>
+    <linearGradient id="tile" x1="8" y1="2" x2="56" y2="64" gradientUnits="userSpaceOnUse"><stop stop-color="#1b2340"/><stop offset="1" stop-color="#0c111b"/></linearGradient>
+    <linearGradient id="route" x1="13" y1="18" x2="51" y2="41" gradientUnits="userSpaceOnUse"><stop stop-color="#88ffd7"/><stop offset=".5" stop-color="#65cfff"/><stop offset="1" stop-color="#b4a1ff"/></linearGradient>
+  </defs>
+  <rect x="1" y="1" width="62" height="62" rx="16" fill="url(#tile)" stroke="#4a526e" stroke-width="1"/>
+  <path d="m13 16 10-6v25l9 9 9-9V18l10-6v27L32 57 13 39Z" fill="url(#route)"/>
+  <path d="m41 9 10-6v5l-10 6Z" fill="#b4a1ff"/>
+  <path d="m28 22 4-4 4 4-4 4Z" fill="#88ffd7"/>
+</svg>

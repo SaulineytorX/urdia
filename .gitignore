@@ -1,0 +1,17 @@
+/target/
+.env
+.urdia/
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+.DS_Store
+.idea/
+.vscode/
+__pycache__/
+*.pyc
+
+# Machine-specific optional native Codex launch definition
+/codex-provider.toml
+
+# Private plan downloads contain project text and historical task notes.
+urdia-plan*.json

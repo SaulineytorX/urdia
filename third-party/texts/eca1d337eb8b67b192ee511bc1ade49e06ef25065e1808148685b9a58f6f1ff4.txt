@@ -1,0 +1,74 @@
+#! /usr/bin/env perl
+# Copyright 2009-2016 The OpenSSL Project Authors. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
+# ====================================================================
+# Written by Andy Polyakov <appro@openssl.org> for the OpenSSL
+# project.
+# ====================================================================
+#
+# This module implements support for Intel AES-NI extension. In
+# OpenSSL context it's used with Intel engine, but can also be used as
+# drop-in replacement for crypto/aes/asm/aes-586.pl [see below for
+# details].
+#
+# Performance.
+#
+# To start with see corresponding paragraph in aesni-x86_64.pl...
+# Instead of filling table similar to one found there I've chosen to
+# summarize *comparison* results for raw ECB, CTR and CBC benchmarks.
+# The simplified table below represents 32-bit performance relative
+# to 64-bit one in every given point. Ratios vary for different
+# encryption modes, therefore interval values.
+#
+#	16-byte     64-byte     256-byte    1-KB        8-KB
+#	53-67%      67-84%      91-94%      95-98%      97-99.5%
+#
+# Lower ratios for smaller block sizes are perfectly understandable,
+# because function call overhead is higher in 32-bit mode. Largest
+# 8-KB block performance is virtually same: 32-bit code is less than
+# 1% slower for ECB, CBC and CCM, and ~3% slower otherwise.
+
+# January 2011
+#
+# See aesni-x86_64.pl for details. Unlike x86_64 version this module
+# interleaves at most 6 aes[enc|dec] instructions, because there are
+# not enough registers for 8x interleave [which should be optimal for
+# Sandy Bridge]. Actually, performance results for 6x interleave
+# factor presented in aesni-x86_64.pl (except for CTR) are for this
+# module.
+
+# April 2011
+#
+# Add aesni_xts_[en|de]crypt. Westmere spends 1.50 cycles processing
+# one byte out of 8KB with 128-bit key, Sandy Bridge - 1.09.
+
+# November 2015
+#
+# Add aesni_ocb_[en|de]crypt. [Removed in BoringSSL]
+
+######################################################################
+# Current large-block performance in cycles per byte processed with
+# 128-bit key (less is better).
+#
+#		CBC en-/decrypt	CTR	XTS	ECB	OCB
+# Westmere	3.77/1.37	1.37	1.52	1.27
+# * Bridge	5.07/0.98	0.99	1.09	0.91	1.10
+# Haswell	4.44/0.80	0.97	1.03	0.72	0.76
+# Skylake	2.68/0.65	0.65	0.66	0.64	0.66
+# Silvermont	5.77/3.56	3.67	4.03	3.46	4.03
+# Goldmont	3.84/1.39	1.39	1.63	1.31	1.70
+# Bulldozer	5.80/0.98	1.05	1.24	0.93	1.23
+

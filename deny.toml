@@ -1,0 +1,38 @@
+# Run with cargo-deny 0.20.2 and --locked; see docs/dependency-audit.md.
+# No target filter: include target-specific and development dependencies.
+[graph]
+all-features = true
+
+[advisories]
+db-urls = ["https://github.com/RustSec/advisory-db"]
+yanked = "deny"
+maximum-db-staleness = "P90D"
+ignore = []
+
+[licenses]
+# OR expressions may select an allowed alternative; AND needs every term.
+# This policy does not replace distribution notices or license-text review.
+allow = [
+    "Apache-2.0",
+    "BSD-3-Clause",
+    "CDLA-Permissive-2.0",
+    "ISC",
+    "MIT",
+    "Unicode-3.0",
+    "Zlib",
+]
+confidence-threshold = 0.8
+
+[licenses.private]
+ignore = false
+
+[bans]
+# Multiple upstream major versions are reviewed warnings, not vulnerabilities.
+multiple-versions = "warn"
+wildcards = "deny"
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]
+allow-git = []

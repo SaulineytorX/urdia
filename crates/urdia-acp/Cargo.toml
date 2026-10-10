@@ -1,0 +1,29 @@
+[package]
+name = "urdia-acp"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+description = "ACP v1 stdio transport for Urdia agents"
+
+[[bin]]
+name = "urdia-fake-agent"
+path = "src/bin/fake-agent.rs"
+
+[dependencies]
+agent-client-protocol.workspace = true
+async-trait.workspace = true
+urdia-core = { path = "../urdia-core", version = "0.1.0" }
+serde_json.workspace = true
+thiserror.workspace = true
+tokio.workspace = true
+uuid.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true
+urdia-ui = { path = "../urdia-ui", version = "0.1.0" }
+
+[lints]
+workspace = true

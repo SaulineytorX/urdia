@@ -1,0 +1,100 @@
+#! /usr/bin/env perl
+# Copyright 2010-2016 The OpenSSL Project Authors. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+#
+# ====================================================================
+# Written by Andy Polyakov <appro@openssl.org> for the OpenSSL
+# project.
+# ====================================================================
+#
+# March, June 2010
+#
+# The module implements "4-bit" GCM GHASH function and underlying
+# single multiplication operation in GF(2^128). "4-bit" means that
+# it uses 256 bytes per-key table [+128 bytes shared table]. GHASH
+# function features so called "528B" variant utilizing additional
+# 256+16 bytes of per-key storage [+512 bytes shared table].
+# Performance results are for this streamed GHASH subroutine and are
+# expressed in cycles per processed byte, less is better:
+#
+#		gcc 3.4.x(*)	assembler
+#
+# P4		28.6		14.0		+100%
+# Opteron	19.3		7.7		+150%
+# Core2		17.8		8.1(**)		+120%
+# Atom		31.6		16.8		+88%
+# VIA Nano	21.8		10.1		+115%
+#
+# (*)	comparison is not completely fair, because C results are
+#	for vanilla "256B" implementation, while assembler results
+#	are for "528B";-)
+# (**)	it's mystery [to me] why Core2 result is not same as for
+#	Opteron;
+
+# May 2010
+#
+# Add PCLMULQDQ version performing at 2.02 cycles per processed byte.
+# See ghash-x86.pl for background information and details about coding
+# techniques.
+#
+# Special thanks to David Woodhouse for providing access to a
+# Westmere-based system on behalf of Intel Open Source Technology Centre.
+
+# December 2012
+#
+# Overhaul: aggregate Karatsuba post-processing, improve ILP in
+# reduction_alg9, increase reduction aggregate factor to 4x. As for
+# the latter. ghash-x86.pl discusses that it makes lesser sense to
+# increase aggregate factor. Then why increase here? Critical path
+# consists of 3 independent pclmulqdq instructions, Karatsuba post-
+# processing and reduction. "On top" of this we lay down aggregated
+# multiplication operations, triplets of independent pclmulqdq's. As
+# issue rate for pclmulqdq is limited, it makes lesser sense to
+# aggregate more multiplications than it takes to perform remaining
+# non-multiplication operations. 2x is near-optimal coefficient for
+# contemporary Intel CPUs (therefore modest improvement coefficient),
+# but not for Bulldozer. Latter is because logical SIMD operations
+# are twice as slow in comparison to Intel, so that critical path is
+# longer. A CPU with higher pclmulqdq issue rate would also benefit
+# from higher aggregate factor...
+#
+# Westmere	1.78(+13%)
+# Sandy Bridge	1.80(+8%)
+# Ivy Bridge	1.80(+7%)
+# Haswell	0.55(+93%) (if system doesn't support AVX)
+# Broadwell	0.45(+110%)(if system doesn't support AVX)
+# Skylake	0.44(+110%)(if system doesn't support AVX)
+# Bulldozer	1.49(+27%)
+# Silvermont	2.88(+13%)
+# Knights L	2.12(-)    (if system doesn't support AVX)
+# Goldmont	1.08(+24%)
+
+# March 2013
+#
+# ... 8x aggregate factor AVX code path is using reduction algorithm
+# suggested by Shay Gueron[1]. Even though contemporary AVX-capable
+# CPUs such as Sandy and Ivy Bridge can execute it, the code performs
+# sub-optimally in comparison to above mentioned version. But thanks
+# to Ilya Albrekht and Max Locktyukhin of Intel Corp. we knew that
+# it performs in 0.41 cycles per byte on Haswell processor, in
+# 0.29 on Broadwell, and in 0.36 on Skylake.
+#
+# Knights Landing achieves 1.09 cpb.
+#
+# [1] http://rt.openssl.org/Ticket/Display.html?id=2900&user=guest&pass=guest
+
+# This file was patched in BoringSSL to remove the variable-time 4-bit
+# implementation.
+

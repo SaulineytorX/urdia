@@ -1,0 +1,17 @@
+{
+  "schema": "urdia-profile-reserved-checkpoint-v1",
+  "date": "2026-10-02",
+  "evaluated_commit": "a279287d48d5d1d5fc4885041d7746e531ba289b",
+  "model": "jev-1.13.0",
+  "fixture_fingerprint": "23787cef784b8a05ee999757b6fc09e7554922acd3da07655d657172a036bb22",
+  "freeze_manifest_sha256": "f09fd18986f94454e9263ec94ff7b9e9f91e9aa0b4430d2dc3ce6897cf00b12a",
+  "binary_sha256": "908007abf9ff38818f9345f4a41758010c23b5ec4a70c10c2f33c754288c4ffa",
+  "logical_evaluations": 16,
+  "repeats": 1,
+  "exact_usage_recorded": false,
+  "automatic_execution": false,
+  "files_sha256": {
+    "evaluations/routing/results/jev-1.13.0-v5-profiles-held-out-1x-2026-10-02.json": "aafeeef849143be62838696b0ddca0cba47d992734979c3e4045e4250b3c3814",
+    "evaluations/routing/results/jev-1.13.0-v5-profiles-adversarial-1x-2026-10-02.json": "43580fd27d18e8c7db8a4a6691fe99c229f56d65b251edc53eeebfef01a73f42"
+  }
+}

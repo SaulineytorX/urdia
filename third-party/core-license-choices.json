@@ -1,0 +1,1248 @@
+{
+  "basis": "candidate licensing choices for conservative normal/build graph; required AND clauses retained; slash spelling treated as publisher MIT/Apache alternative",
+  "distribution_approval": false,
+  "native_review": {
+    "Rust standard library": "Installed 1.98.1 library copyright and supplied terms retained broadly. Default Apache-2.0 OR MIT terms and listed Unicode/Fuchsia exceptions reviewed; no exact linked-component closure or compiler/host-runtime distribution approval is claimed.",
+    "libsqlite3-sys": "No bundled/SQLCipher feature selected; system SQLite linked dynamically. Existing crate and SQLCipher notices retained conservatively.",
+    "ring": "277 original source-comment references retained, including complete Perl licenses and pregenerated assembly notices after directives. 342 source files scanned with 721 defined attribution signals; signal coverage is bounded, not an exhaustive legal/inline-source audit. Fiat AUTHORS provenance and crate dirty flag remain unchanged."
+  },
+  "registry_packages": [
+    {
+      "declared_expression": "Apache-2.0",
+      "name": "agent-client-protocol",
+      "selected_expression": "Apache-2.0",
+      "version": "2.2.0"
+    },
+    {
+      "declared_expression": "Apache-2.0",
+      "name": "agent-client-protocol-derive",
+      "selected_expression": "Apache-2.0",
+      "version": "2.2.0"
+    },
+    {
+      "declared_expression": "Apache-2.0",
+      "name": "agent-client-protocol-schema",
+      "selected_expression": "Apache-2.0",
+      "version": "1.9.1"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "anstream",
+      "selected_expression": "MIT",
+      "version": "1.0.0"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "anstyle",
+      "selected_expression": "MIT",
+      "version": "1.0.14"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "anstyle-parse",
+      "selected_expression": "MIT",
+      "version": "1.0.0"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "anstyle-query",
+      "selected_expression": "MIT",
+      "version": "1.1.5"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "anyhow",
+      "selected_expression": "MIT",
+      "version": "1.0.104"
+    },
+    {
+      "declared_expression": "Apache-2.0 OR MIT",
+      "name": "async-channel",
+      "selected_expression": "MIT",
+      "version": "2.5.0"
+    },
+    {
+      "declared_expression": "Apache-2.0 OR MIT",
+      "name": "async-io",
+      "selected_expression": "MIT",
+      "version": "2.6.0"
+    },
+    {
+      "declared_expression": "Apache-2.0 OR MIT",
+      "name": "async-lock",
+      "selected_expression": "MIT",
+      "version": "3.4.2"
+    },
+    {
+      "declared_expression": "Apache-2.0 OR MIT",
+      "name": "async-process",
+      "selected_expression": "MIT",
+      "version": "2.5.0"
+    },
+    {
+      "declared_expression": "Apache-2.0 OR MIT",
+      "name": "async-signal",
+      "selected_expression": "MIT",
+      "version": "0.2.14"
+    },
+    {
+      "declared_expression": "Apache-2.0 OR MIT",
+      "name": "async-task",
+      "selected_expression": "MIT",
+      "version": "4.7.1"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "async-trait",
+      "selected_expression": "MIT",
+      "version": "0.1.92"
+    },
+    {
+      "declared_expression": "Apache-2.0 OR MIT",
+      "name": "atomic-waker",
+      "selected_expression": "MIT",
+      "version": "1.1.2"
+    },
+    {
+      "declared_expression": "Apache-2.0 OR MIT",
+      "name": "autocfg",
+      "selected_expression": "MIT",
+      "version": "1.5.1"
+    },
+    {
+      "declared_expression": "MIT",
+      "name": "axum",
+      "selected_expression": "MIT",
+      "version": "0.8.9"
+    },
+    {
+      "declared_expression": "MIT",
+      "name": "axum-core",
+      "selected_expression": "MIT",
+      "version": "0.5.6"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "base64",
+      "selected_expression": "MIT",
+      "version": "0.22.1"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "base64",
+      "selected_expression": "MIT",
+      "version": "0.23.1"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "bitflags",
+      "selected_expression": "MIT",
+      "version": "2.13.2"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "block-buffer",
+      "selected_expression": "MIT",
+      "version": "0.10.4"
+    },
+    {
+      "declared_expression": "Apache-2.0 OR MIT",
+      "name": "blocking",
+      "selected_expression": "MIT",
+      "version": "1.7.0"
+    },
+    {
+      "declared_expression": "MIT",
+      "name": "bytes",
+      "selected_expression": "MIT",
+      "version": "1.12.1"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "cc",
+      "selected_expression": "MIT",
+      "version": "1.5.1"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "cfg-if",
+      "selected_expression": "MIT",
+      "version": "1.0.5"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "clap",
+      "selected_expression": "MIT",
+      "version": "4.6.7"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "clap_builder",
+      "selected_expression": "MIT",
+      "version": "4.6.7"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "clap_derive",
+      "selected_expression": "MIT",
+      "version": "4.6.7"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "clap_lex",
+      "selected_expression": "MIT",
+      "version": "1.1.1"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "colorchoice",
+      "selected_expression": "MIT",
+      "version": "1.0.5"
+    },
+    {
+      "declared_expression": "Apache-2.0 OR MIT",
+      "name": "concurrent-queue",
+      "selected_expression": "MIT",
+      "version": "2.5.0"
+    },
+    {
+      "declared_expression": "MIT",
+      "name": "convert_case",
+      "selected_expression": "MIT",
+      "version": "0.10.0"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "cpufeatures",
+      "selected_expression": "MIT",
+      "version": "0.2.17"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "crossbeam-utils",
+      "selected_expression": "MIT",
+      "version": "0.8.23"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "crypto-common",
+      "selected_expression": "MIT",
+      "version": "0.1.7"
+    },
+    {
+      "declared_expression": "MIT",
+      "name": "darling",
+      "selected_expression": "MIT",
+      "version": "0.24.1"
+    },
+    {
+      "declared_expression": "MIT",
+      "name": "darling_core",
+      "selected_expression": "MIT",
+      "version": "0.24.1"
+    },
+    {
+      "declared_expression": "MIT",
+      "name": "darling_macro",
+      "selected_expression": "MIT",
+      "version": "0.24.1"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "deranged",
+      "selected_expression": "MIT",
+      "version": "0.5.8"
+    },
+    {
+      "declared_expression": "MIT",
+      "name": "derive_more",
+      "selected_expression": "MIT",
+      "version": "2.1.1"
+    },
+    {
+      "declared_expression": "MIT",
+      "name": "derive_more-impl",
+      "selected_expression": "MIT",
+      "version": "2.1.1"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "digest",
+      "selected_expression": "MIT",
+      "version": "0.10.7"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "displaydoc",
+      "selected_expression": "MIT",
+      "version": "0.2.7"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "dyn-clone",
+      "selected_expression": "MIT",
+      "version": "1.0.20"
+    },
+    {
+      "declared_expression": "Apache-2.0 OR MIT",
+      "name": "equivalent",
+      "selected_expression": "MIT",
+      "version": "1.0.2"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "errno",
+      "selected_expression": "MIT",
+      "version": "0.3.14"
+    },
+    {
+      "declared_expression": "Apache-2.0 OR MIT",
+      "name": "event-listener",
+      "selected_expression": "MIT",
+      "version": "5.4.2"
+    },
+    {
+      "declared_expression": "Apache-2.0 OR MIT",
+      "name": "event-listener-strategy",
+      "selected_expression": "MIT",
+      "version": "0.5.4"
+    },
+    {
+      "declared_expression": "MIT/Apache-2.0",
+      "name": "fallible-iterator",
+      "selected_expression": "MIT",
+      "version": "0.3.0"
+    },
+    {
+      "declared_expression": "MIT/Apache-2.0",
+      "name": "fallible-streaming-iterator",
+      "selected_expression": "MIT",
+      "version": "0.1.9"
+    },
+    {
+      "declared_expression": "Apache-2.0 OR MIT",
+      "name": "fastrand",
+      "selected_expression": "MIT",
+      "version": "2.5.0"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "find-msvc-tools",
+      "selected_expression": "MIT",
+      "version": "0.1.14"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "fixedbitset",
+      "selected_expression": "MIT",
+      "version": "0.5.7"
+    },
+    {
+      "declared_expression": "Zlib",
+      "name": "foldhash",
+      "selected_expression": "Zlib",
+      "version": "0.2.0"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "form_urlencoded",
+      "selected_expression": "MIT",
+      "version": "1.2.2"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "futures",
+      "selected_expression": "MIT",
+      "version": "0.3.34"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "futures-channel",
+      "selected_expression": "MIT",
+      "version": "0.3.34"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "futures-concurrency",
+      "selected_expression": "MIT",
+      "version": "7.7.1"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "futures-core",
+      "selected_expression": "MIT",
+      "version": "0.3.34"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "futures-executor",
+      "selected_expression": "MIT",
+      "version": "0.3.34"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "futures-io",
+      "selected_expression": "MIT",
+      "version": "0.3.34"
+    },
+    {
+      "declared_expression": "Apache-2.0 OR MIT",
+      "name": "futures-lite",
+      "selected_expression": "MIT",
+      "version": "2.6.1"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "futures-macro",
+      "selected_expression": "MIT",
+      "version": "0.3.34"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "futures-sink",
+      "selected_expression": "MIT",
+      "version": "0.3.34"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "futures-task",
+      "selected_expression": "MIT",
+      "version": "0.3.34"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "futures-util",
+      "selected_expression": "MIT",
+      "version": "0.3.34"
+    },
+    {
+      "declared_expression": "MIT",
+      "name": "generic-array",
+      "selected_expression": "MIT",
+      "version": "0.14.7"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "getrandom",
+      "selected_expression": "MIT",
+      "version": "0.2.17"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "getrandom",
+      "selected_expression": "MIT",
+      "version": "0.4.3"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "hashbrown",
+      "selected_expression": "MIT",
+      "version": "0.17.1"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "hashlink",
+      "selected_expression": "MIT",
+      "version": "0.12.2"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "heck",
+      "selected_expression": "MIT",
+      "version": "0.5.0"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "http",
+      "selected_expression": "MIT",
+      "version": "1.5.0"
+    },
+    {
+      "declared_expression": "MIT",
+      "name": "http-body",
+      "selected_expression": "MIT",
+      "version": "1.1.0"
+    },
+    {
+      "declared_expression": "MIT",
+      "name": "http-body-util",
+      "selected_expression": "MIT",
+      "version": "0.1.5"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "httparse",
+      "selected_expression": "MIT",
+      "version": "1.10.1"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "httpdate",
+      "selected_expression": "MIT",
+      "version": "1.0.3"
+    },
+    {
+      "declared_expression": "MIT",
+      "name": "hyper",
+      "selected_expression": "MIT",
+      "version": "1.11.1"
+    },
+    {
+      "declared_expression": "Apache-2.0 OR ISC OR MIT",
+      "name": "hyper-rustls",
+      "selected_expression": "MIT",
+      "version": "0.27.10"
+    },
+    {
+      "declared_expression": "MIT",
+      "name": "hyper-util",
+      "selected_expression": "MIT",
+      "version": "0.1.21"
+    },
+    {
+      "declared_expression": "Unicode-3.0",
+      "name": "icu_collections",
+      "selected_expression": "Unicode-3.0",
+      "version": "2.3.0"
+    },
+    {
+      "declared_expression": "Unicode-3.0",
+      "name": "icu_locale_core",
+      "selected_expression": "Unicode-3.0",
+      "version": "2.3.0"
+    },
+    {
+      "declared_expression": "Unicode-3.0",
+      "name": "icu_normalizer",
+      "selected_expression": "Unicode-3.0",
+      "version": "2.3.0"
+    },
+    {
+      "declared_expression": "Unicode-3.0",
+      "name": "icu_normalizer_data",
+      "selected_expression": "Unicode-3.0",
+      "version": "2.3.0"
+    },
+    {
+      "declared_expression": "Unicode-3.0",
+      "name": "icu_properties",
+      "selected_expression": "Unicode-3.0",
+      "version": "2.3.0"
+    },
+    {
+      "declared_expression": "Unicode-3.0",
+      "name": "icu_properties_data",
+      "selected_expression": "Unicode-3.0",
+      "version": "2.3.0"
+    },
+    {
+      "declared_expression": "Unicode-3.0",
+      "name": "icu_provider",
+      "selected_expression": "Unicode-3.0",
+      "version": "2.3.1"
+    },
+    {
+      "declared_expression": "MIT/Apache-2.0",
+      "name": "ident_case",
+      "selected_expression": "MIT",
+      "version": "1.0.1"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "idna",
+      "selected_expression": "MIT",
+      "version": "1.1.0"
+    },
+    {
+      "declared_expression": "Apache-2.0 OR MIT",
+      "name": "idna_adapter",
+      "selected_expression": "MIT",
+      "version": "1.2.2"
+    },
+    {
+      "declared_expression": "Apache-2.0 OR MIT",
+      "name": "indexmap",
+      "selected_expression": "MIT",
+      "version": "2.14.2"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "ipnet",
+      "selected_expression": "MIT",
+      "version": "2.12.2"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "is_terminal_polyfill",
+      "selected_expression": "MIT",
+      "version": "1.70.2"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "itoa",
+      "selected_expression": "MIT",
+      "version": "1.0.18"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "libc",
+      "selected_expression": "MIT",
+      "version": "0.2.189"
+    },
+    {
+      "declared_expression": "MIT",
+      "name": "libsqlite3-sys",
+      "selected_expression": "MIT",
+      "version": "0.38.2"
+    },
+    {
+      "declared_expression": "Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT",
+      "name": "linux-raw-sys",
+      "selected_expression": "MIT",
+      "version": "0.12.1"
+    },
+    {
+      "declared_expression": "Unicode-3.0",
+      "name": "litemap",
+      "selected_expression": "Unicode-3.0",
+      "version": "0.8.3"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "log",
+      "selected_expression": "MIT",
+      "version": "0.4.34"
+    },
+    {
+      "declared_expression": "MIT AND BSD-3-Clause",
+      "name": "matchit",
+      "selected_expression": "MIT AND BSD-3-Clause",
+      "version": "0.8.4"
+    },
+    {
+      "declared_expression": "Unlicense OR MIT",
+      "name": "memchr",
+      "selected_expression": "MIT",
+      "version": "2.8.3"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "mime",
+      "selected_expression": "MIT",
+      "version": "0.3.17"
+    },
+    {
+      "declared_expression": "MIT",
+      "name": "mio",
+      "selected_expression": "MIT",
+      "version": "1.2.3"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "num-conv",
+      "selected_expression": "MIT",
+      "version": "0.2.2"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "once_cell",
+      "selected_expression": "MIT",
+      "version": "1.21.4"
+    },
+    {
+      "declared_expression": "Apache-2.0 OR MIT",
+      "name": "parking",
+      "selected_expression": "MIT",
+      "version": "2.2.1"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "percent-encoding",
+      "selected_expression": "MIT",
+      "version": "2.3.2"
+    },
+    {
+      "declared_expression": "Apache-2.0 OR MIT",
+      "name": "pin-project",
+      "selected_expression": "MIT",
+      "version": "1.1.13"
+    },
+    {
+      "declared_expression": "Apache-2.0 OR MIT",
+      "name": "pin-project-internal",
+      "selected_expression": "MIT",
+      "version": "1.1.13"
+    },
+    {
+      "declared_expression": "Apache-2.0 OR MIT",
+      "name": "pin-project-lite",
+      "selected_expression": "MIT",
+      "version": "0.2.17"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "piper",
+      "selected_expression": "MIT",
+      "version": "0.2.5"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "pkg-config",
+      "selected_expression": "MIT",
+      "version": "0.3.34"
+    },
+    {
+      "declared_expression": "Apache-2.0 OR MIT",
+      "name": "polling",
+      "selected_expression": "MIT",
+      "version": "3.11.0"
+    },
+    {
+      "declared_expression": "Unicode-3.0",
+      "name": "potential_utf",
+      "selected_expression": "Unicode-3.0",
+      "version": "0.1.6"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "powerfmt",
+      "selected_expression": "MIT",
+      "version": "0.2.0"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "proc-macro2",
+      "selected_expression": "MIT",
+      "version": "1.0.107"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "quote",
+      "selected_expression": "MIT",
+      "version": "1.0.47"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "ref-cast",
+      "selected_expression": "MIT",
+      "version": "1.0.27"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "ref-cast-impl",
+      "selected_expression": "MIT",
+      "version": "1.0.27"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "reqwest",
+      "selected_expression": "MIT",
+      "version": "0.12.28"
+    },
+    {
+      "declared_expression": "Apache-2.0 AND ISC",
+      "name": "ring",
+      "selected_expression": "Apache-2.0 AND ISC",
+      "version": "0.17.14"
+    },
+    {
+      "declared_expression": "MIT",
+      "name": "rusqlite",
+      "selected_expression": "MIT",
+      "version": "0.40.2"
+    },
+    {
+      "declared_expression": "Apache-2.0 OR MIT",
+      "name": "rustc-hash",
+      "selected_expression": "MIT",
+      "version": "2.1.3"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "rustc_version",
+      "selected_expression": "MIT",
+      "version": "0.4.1"
+    },
+    {
+      "declared_expression": "Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT",
+      "name": "rustix",
+      "selected_expression": "MIT",
+      "version": "1.1.5"
+    },
+    {
+      "declared_expression": "Apache-2.0 OR ISC OR MIT",
+      "name": "rustls",
+      "selected_expression": "MIT",
+      "version": "0.23.45"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "rustls-pki-types",
+      "selected_expression": "MIT",
+      "version": "1.15.1"
+    },
+    {
+      "declared_expression": "ISC",
+      "name": "rustls-webpki",
+      "selected_expression": "ISC",
+      "version": "0.103.15"
+    },
+    {
+      "declared_expression": "Apache-2.0 OR BSL-1.0",
+      "name": "ryu",
+      "selected_expression": "Apache-2.0",
+      "version": "1.0.23"
+    },
+    {
+      "declared_expression": "MIT",
+      "name": "schemars",
+      "selected_expression": "MIT",
+      "version": "1.2.2"
+    },
+    {
+      "declared_expression": "MIT",
+      "name": "schemars_derive",
+      "selected_expression": "MIT",
+      "version": "1.2.2"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "semver",
+      "selected_expression": "MIT",
+      "version": "1.0.28"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "serde",
+      "selected_expression": "MIT",
+      "version": "1.0.229"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "serde_core",
+      "selected_expression": "MIT",
+      "version": "1.0.229"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "serde_derive",
+      "selected_expression": "MIT",
+      "version": "1.0.229"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "serde_derive_internals",
+      "selected_expression": "MIT",
+      "version": "0.30.0"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "serde_json",
+      "selected_expression": "MIT",
+      "version": "1.0.151"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "serde_path_to_error",
+      "selected_expression": "MIT",
+      "version": "0.1.20"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "serde_spanned",
+      "selected_expression": "MIT",
+      "version": "1.1.1"
+    },
+    {
+      "declared_expression": "MIT/Apache-2.0",
+      "name": "serde_urlencoded",
+      "selected_expression": "MIT",
+      "version": "0.7.1"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "serde_with",
+      "selected_expression": "MIT",
+      "version": "3.23.0"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "serde_with_macros",
+      "selected_expression": "MIT",
+      "version": "3.23.0"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "sha2",
+      "selected_expression": "MIT",
+      "version": "0.10.9"
+    },
+    {
+      "declared_expression": "MIT/Apache-2.0",
+      "name": "shell-words",
+      "selected_expression": "MIT",
+      "version": "1.1.1"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "shlex",
+      "selected_expression": "MIT",
+      "version": "2.0.1"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "signal-hook-registry",
+      "selected_expression": "MIT",
+      "version": "1.4.8"
+    },
+    {
+      "declared_expression": "MIT",
+      "name": "slab",
+      "selected_expression": "MIT",
+      "version": "0.4.12"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "smallvec",
+      "selected_expression": "MIT",
+      "version": "1.16.2"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "socket2",
+      "selected_expression": "MIT",
+      "version": "0.6.5"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "stable_deref_trait",
+      "selected_expression": "MIT",
+      "version": "1.2.1"
+    },
+    {
+      "declared_expression": "MIT",
+      "name": "strsim",
+      "selected_expression": "MIT",
+      "version": "0.11.1"
+    },
+    {
+      "declared_expression": "MIT",
+      "name": "strum",
+      "selected_expression": "MIT",
+      "version": "0.28.0"
+    },
+    {
+      "declared_expression": "MIT",
+      "name": "strum_macros",
+      "selected_expression": "MIT",
+      "version": "0.28.0"
+    },
+    {
+      "declared_expression": "BSD-3-Clause",
+      "name": "subtle",
+      "selected_expression": "BSD-3-Clause",
+      "version": "2.6.1"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "syn",
+      "selected_expression": "MIT",
+      "version": "2.0.119"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "syn",
+      "selected_expression": "MIT",
+      "version": "3.0.6"
+    },
+    {
+      "declared_expression": "Apache-2.0",
+      "name": "sync_wrapper",
+      "selected_expression": "Apache-2.0",
+      "version": "1.0.2"
+    },
+    {
+      "declared_expression": "MIT",
+      "name": "synstructure",
+      "selected_expression": "MIT",
+      "version": "0.14.0"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "tempfile",
+      "selected_expression": "MIT",
+      "version": "3.27.0"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "thiserror",
+      "selected_expression": "MIT",
+      "version": "2.0.21"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "thiserror-impl",
+      "selected_expression": "MIT",
+      "version": "2.0.21"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "time",
+      "selected_expression": "MIT",
+      "version": "0.3.55"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "time-core",
+      "selected_expression": "MIT",
+      "version": "0.1.9"
+    },
+    {
+      "declared_expression": "Unicode-3.0",
+      "name": "tinystr",
+      "selected_expression": "Unicode-3.0",
+      "version": "0.8.4"
+    },
+    {
+      "declared_expression": "MIT",
+      "name": "tokio",
+      "selected_expression": "MIT",
+      "version": "1.53.1"
+    },
+    {
+      "declared_expression": "MIT",
+      "name": "tokio-macros",
+      "selected_expression": "MIT",
+      "version": "2.7.2"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "tokio-rustls",
+      "selected_expression": "MIT",
+      "version": "0.26.5"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "toml",
+      "selected_expression": "MIT",
+      "version": "1.1.6+spec-1.1.0"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "toml_datetime",
+      "selected_expression": "MIT",
+      "version": "1.1.1+spec-1.1.0"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "toml_parser",
+      "selected_expression": "MIT",
+      "version": "1.1.3+spec-1.1.0"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "toml_writer",
+      "selected_expression": "MIT",
+      "version": "1.1.2+spec-1.1.0"
+    },
+    {
+      "declared_expression": "MIT",
+      "name": "tower",
+      "selected_expression": "MIT",
+      "version": "0.5.3"
+    },
+    {
+      "declared_expression": "MIT",
+      "name": "tower-http",
+      "selected_expression": "MIT",
+      "version": "0.6.11"
+    },
+    {
+      "declared_expression": "MIT",
+      "name": "tower-layer",
+      "selected_expression": "MIT",
+      "version": "0.3.3"
+    },
+    {
+      "declared_expression": "MIT",
+      "name": "tower-service",
+      "selected_expression": "MIT",
+      "version": "0.3.3"
+    },
+    {
+      "declared_expression": "MIT",
+      "name": "tracing",
+      "selected_expression": "MIT",
+      "version": "0.1.44"
+    },
+    {
+      "declared_expression": "MIT",
+      "name": "tracing-attributes",
+      "selected_expression": "MIT",
+      "version": "0.1.31"
+    },
+    {
+      "declared_expression": "MIT",
+      "name": "tracing-core",
+      "selected_expression": "MIT",
+      "version": "0.1.36"
+    },
+    {
+      "declared_expression": "MIT",
+      "name": "try-lock",
+      "selected_expression": "MIT",
+      "version": "0.2.5"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "typenum",
+      "selected_expression": "MIT",
+      "version": "1.20.1"
+    },
+    {
+      "declared_expression": "(MIT OR Apache-2.0) AND Unicode-3.0",
+      "name": "unicode-ident",
+      "selected_expression": "MIT AND Unicode-3.0",
+      "version": "1.0.26"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "unicode-segmentation",
+      "selected_expression": "MIT",
+      "version": "1.13.3"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "unicode-xid",
+      "selected_expression": "MIT",
+      "version": "0.2.6"
+    },
+    {
+      "declared_expression": "ISC",
+      "name": "untrusted",
+      "selected_expression": "ISC",
+      "version": "0.9.0"
+    },
+    {
+      "declared_expression": "MIT OR Apache-2.0",
+      "name": "url",
+      "selected_expression": "MIT",
+      "version": "2.5.8"
+    },
+    {
+      "declared_expression": "Apache-2.0 OR MIT",
+      "name": "utf8_iter",
+      "selected_expression": "MIT",
+      "version": "1.0.4"
+    },
+    {
+      "declared_expression": "Apache-2.0 OR MIT",
+      "name": "utf8parse",
+      "selected_expression": "MIT",
+      "version": "0.2.2"
+    },
+    {
+      "declared_expression": "Apache-2.0 OR MIT",
+      "name": "uuid",
+      "selected_expression": "MIT",
+      "version": "1.26.1"
+    },
+    {
+      "declared_expression": "MIT/Apache-2.0",
+      "name": "vcpkg",
+      "selected_expression": "MIT",
+      "version": "0.2.15"
+    },
+    {
+      "declared_expression": "MIT/Apache-2.0",
+      "name": "version_check",
+      "selected_expression": "MIT",
+      "version": "0.9.5"
+    },
+    {
+      "declared_expression": "MIT",
+      "name": "want",
+      "selected_expression": "MIT",
+      "version": "0.3.1"
+    },
+    {
+      "declared_expression": "CDLA-Permissive-2.0",
+      "name": "webpki-roots",
+      "selected_expression": "CDLA-Permissive-2.0",
+      "version": "1.0.9"
+    },
+    {
+      "declared_expression": "MIT",
+      "name": "winnow",
+      "selected_expression": "MIT",
+      "version": "1.0.4"
+    },
+    {
+      "declared_expression": "Unicode-3.0",
+      "name": "writeable",
+      "selected_expression": "Unicode-3.0",
+      "version": "0.6.4"
+    },
+    {
+      "declared_expression": "Unicode-3.0",
+      "name": "yoke",
+      "selected_expression": "Unicode-3.0",
+      "version": "0.8.3"
+    },
+    {
+      "declared_expression": "Unicode-3.0",
+      "name": "yoke-derive",
+      "selected_expression": "Unicode-3.0",
+      "version": "0.8.4"
+    },
+    {
+      "declared_expression": "Unicode-3.0",
+      "name": "zerofrom",
+      "selected_expression": "Unicode-3.0",
+      "version": "0.1.8"
+    },
+    {
+      "declared_expression": "Unicode-3.0",
+      "name": "zerofrom-derive",
+      "selected_expression": "Unicode-3.0",
+      "version": "0.1.8"
+    },
+    {
+      "declared_expression": "Apache-2.0 OR MIT",
+      "name": "zeroize",
+      "selected_expression": "MIT",
+      "version": "1.9.0"
+    },
+    {
+      "declared_expression": "Unicode-3.0",
+      "name": "zerotrie",
+      "selected_expression": "Unicode-3.0",
+      "version": "0.2.5"
+    },
+    {
+      "declared_expression": "Unicode-3.0",
+      "name": "zerovec",
+      "selected_expression": "Unicode-3.0",
+      "version": "0.11.8"
+    },
+    {
+      "declared_expression": "Unicode-3.0",
+      "name": "zerovec-derive",
+      "selected_expression": "Unicode-3.0",
+      "version": "0.11.6"
+    },
+    {
+      "declared_expression": "MIT",
+      "name": "zmij",
+      "selected_expression": "MIT",
+      "version": "1.0.23"
+    }
+  ],
+  "remaining": [
+    "Final component inclusion and redistribution obligation approval",
+    "Independent build/provenance/signature identity",
+    "ABI portability and public release authorization"
+  ],
+  "schema": "urdia.core-license-choices/v1",
+  "target": "x86_64-unknown-linux-gnu"
+}

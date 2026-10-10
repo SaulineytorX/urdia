@@ -1,0 +1,42 @@
+#! /usr/bin/env perl
+# Copyright 2016 The OpenSSL Project Authors. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+#
+# ====================================================================
+# Written by Andy Polyakov <appro@openssl.org> for the OpenSSL
+# project.
+# ====================================================================
+#
+# June 2015
+#
+# ChaCha20 for ARMv8.
+#
+# Performance in cycles per byte out of large buffer.
+#
+#			IALU/gcc-4.9    3xNEON+1xIALU	6xNEON+2xIALU
+#
+# Apple A7		5.50/+49%       3.33            1.70
+# Cortex-A53		8.40/+80%       4.72		4.72(*)
+# Cortex-A57		8.06/+43%       4.90            4.43(**)
+# Denver		4.50/+82%       2.63		2.67(*)
+# X-Gene		9.50/+46%       8.82		8.89(*)
+# Mongoose		8.00/+44%	3.64		3.25
+# Kryo			8.17/+50%	4.83		4.65
+#
+# (*)	it's expected that doubling interleave factor doesn't help
+#	all processors, only those with higher NEON latency and
+#	higher instruction issue rate;
+# (**)	expected improvement was actually higher;
+

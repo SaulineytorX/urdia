@@ -1,0 +1,24 @@
+[package]
+name = "urdia-store-sqlite"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+description = "SQLite event store for Urdia"
+
+[dependencies]
+async-trait.workspace = true
+urdia-core = { path = "../urdia-core", version = "0.1.0" }
+rusqlite.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+uuid.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true
+tokio.workspace = true
+
+[lints]
+workspace = true
