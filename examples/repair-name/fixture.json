@@ -1,0 +1,11 @@
+{
+  "schema": "urdia.repair-name/v1",
+  "source_file": "normalize.py",
+  "protected_test_file": "test_normalize.py",
+  "source_sha256": "392f6238dfbd41ec0f3221ca2e35dd22b8cbd11e8d5fde44f90cff1ca7dce75c",
+  "protected_tests_sha256": "be40d9a74f7d89f88a7f0ceb3e71e313086f6af1b10114d52ec58aaf0c4a370e",
+  "existing_tests": 4,
+  "additional_cases": 10,
+  "task_file": "task.txt",
+  "task_sha256": "cc98bf6b91634fac5cbfd4136d6c5700c836f18d4d34e174f957c23355f999c5"
+}

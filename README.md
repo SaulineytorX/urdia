@@ -49,6 +49,9 @@ saved key and an explicit connection test that can consume provider quota.
 Agents and approved checks run as your operating-system user. Urdia is not a
 sandbox. Its browser listens on loopback with a private access token.
 
+Try [repairing an existing project](examples/repair-name/README.md).
+[The paired pilot](docs/repair-pilot.md) records verified results and limits.
+
 ## Learn and contribute
 
 [Architecture](docs/architecture.md), [workspace](docs/workspace-ui.md),

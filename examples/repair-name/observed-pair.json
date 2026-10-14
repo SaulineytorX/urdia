@@ -1,0 +1,72 @@
+{
+  "schema": "urdia.repair-pilot-public/v1",
+  "date": "2026-10-14",
+  "public_runtime_source_commit": "572e7abb01395284d7a80848de56664434c9efc2",
+  "matched_private_public_runtime_files": 66,
+  "fixture": {
+    "task_sha256": "cc98bf6b91634fac5cbfd4136d6c5700c836f18d4d34e174f957c23355f999c5",
+    "seed_sha256": "392f6238dfbd41ec0f3221ca2e35dd22b8cbd11e8d5fde44f90cff1ca7dce75c",
+    "protected_tests_sha256": "be40d9a74f7d89f88a7f0ceb3e71e313086f6af1b10114d52ec58aaf0c4a370e"
+  },
+  "order": [
+    "manual",
+    "jev"
+  ],
+  "replicates_per_condition": 1,
+  "default_profile": "codex-low",
+  "eligible_profiles": [
+    "codex-low",
+    "codex-medium"
+  ],
+  "requested_model": "gpt-6.1-sol",
+  "remote_model_independently_verified": false,
+  "connection_tests": 1,
+  "decision_requests": 1,
+  "coding_tasks_submitted": 2,
+  "automatic_retries": false,
+  "timing_scope": "submit to terminal agent state, including decision/permission handling; excludes startup, connection tests and output verification",
+  "tokens": null,
+  "cost": null,
+  "runs": [
+    {
+      "condition": "manual",
+      "result": "passed",
+      "baseline_tests": 4,
+      "baseline_passed": false,
+      "selected_profile": "codex-low",
+      "decision_elapsed_ms": 0,
+      "submit_to_terminal_ms": 5870,
+      "edit_approvals": 1,
+      "project_tests": 4,
+      "holdouts": {
+        "cases": 10,
+        "passed": true
+      },
+      "protected_tests_unchanged": true,
+      "source_sha256": "02b56e26bbf283f02f0b6e831885e03305e78dd2fe6e1361278b93a597795182",
+      "guard_rejections": 0,
+      "tokens": null,
+      "cost": null
+    },
+    {
+      "condition": "jev",
+      "result": "passed",
+      "baseline_tests": 4,
+      "baseline_passed": false,
+      "selected_profile": "codex-low",
+      "decision_elapsed_ms": 93,
+      "submit_to_terminal_ms": 7941,
+      "edit_approvals": 1,
+      "project_tests": 4,
+      "holdouts": {
+        "cases": 10,
+        "passed": true
+      },
+      "protected_tests_unchanged": true,
+      "source_sha256": "02b56e26bbf283f02f0b6e831885e03305e78dd2fe6e1361278b93a597795182",
+      "guard_rejections": 0,
+      "tokens": null,
+      "cost": null
+    }
+  ]
+}

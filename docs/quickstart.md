@@ -139,6 +139,11 @@ The connection test and task decisions can consume quota; Jev does not grant
 tool permissions. See [automatic Jev](automatic-jev.md) and
 [credential storage](jev-credentials.md). Laya setup is separate and optional.
 
+For a repeatable existing-project exercise, try the
+[repair example](../examples/repair-name/README.md): fix one source file while
+keeping its tests unchanged. [The paired pilot](repair-pilot.md) records what was
+observed with manual and Jev selection.
+
 ## Update an existing checkout
 
 Stop Urdia first, then:

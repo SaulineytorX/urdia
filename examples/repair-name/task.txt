@@ -1,0 +1,5 @@
+Repair only normalize.py in this existing Python project. Preserve test_normalize.py byte-for-byte. normalize_name(value) must accept only str (otherwise TypeError), collapse whitespace using split/join, casefold for Unicode, and reject empty/whitespace-only strings with ValueError. The current complete normalize.py is:
+def normalize_name(value):
+    return value.strip().lower()
+
+The existing unchanged tests cover repeated spaces, Straße->strasse, whitespace-only and integer input. Use no imports. Use file-edit tools only; do not execute commands/tests, read unrelated files, use network/MCP or delegate. If an approval is denied, stop without retrying. Do not claim tests ran: the operator will check independently. Keep the final response brief.
