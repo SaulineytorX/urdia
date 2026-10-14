@@ -25,7 +25,10 @@ verification of remote model identity. Routing does not grant tool permissions.
 
 ## Start here
 
-Follow [installation](docs/installation.md) and [guided setup](docs/guided-setup.md).
+Start with [Your first Urdia task](docs/quickstart.md): download, prerequisites,
+guided build, offline preview, a real coding agent and a checked result.
+[Installation reference](docs/installation.md) and [guided setup](docs/guided-setup.md)
+cover the individual steps.
 Build once, check the offline demo,
 then connect a signed-in coding agent to your project. The demo is clearly labeled
 **not AI** and makes no project edits. API keys do not belong in task messages.

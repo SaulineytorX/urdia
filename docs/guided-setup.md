@@ -1,6 +1,9 @@
 # Guided source setup on Ubuntu / WSL
 
-From the source folder, run one command:
+New here? Follow [Your first Urdia task](quickstart.md) for the complete
+Ubuntu/WSL path from downloading the source to checking a real task.
+
+Already prepared the source folder? Run one command:
 
 ```sh
 python3 -I -B scripts/setup-urdia.py

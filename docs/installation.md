@@ -1,5 +1,8 @@
 # Start Urdia on Linux or Windows with WSL
 
+**First installation?** Start with [Your first Urdia task](quickstart.md):
+prerequisites, public download, guided build, offline preview, real agent and checks.
+
 This is a Linux/WSL source preview, not a prebuilt installer. Use Ubuntu 24.04 x86_64;
 on Windows, run these steps inside Ubuntu on WSL. Install Rust with rustup first.
 The checked-in toolchain file selects the reviewed Rust version.
