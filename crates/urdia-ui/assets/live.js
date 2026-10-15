@@ -2019,6 +2019,54 @@ function renderTaskOutcome(snapshot) {
     finally { registeringAgent = false; agentField("save").disabled = false; }
   });
 
+// BEGIN profile draft suggestions
+function suggestProfileDraft(input) {
+  input = input && typeof input === "object" ? input : {};
+  const provider = input && input.provider ? input.provider : null;
+  const modelSelector = typeof input.modelSelector === "string" ? input.modelSelector : "";
+  const effortSelector = typeof input.effortSelector === "string" ? input.effortSelector : "";
+  const existingIds = Array.isArray(input.existingIds) ? input.existingIds : [];
+  const ownership = input && input.ownership ? input.ownership : {};
+  const bound = (text) => {
+    let result = "", bytes = 0;
+    for (const char of String(text == null ? "" : text)) {
+      const point = char.codePointAt(0);
+      if (point <= 31 || (point >= 127 && point <= 159)) continue;
+      const size = new TextEncoder().encode(char).length;
+      if (bytes + size > 128) break;
+      result += char; bytes += size;
+    }
+    return result.trim();
+  };
+  const slugify = (text) => {
+    let slug = String(text == null ? "" : text).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+    if (slug.length > 128) slug = slug.slice(0, 128).replace(/-+$/g, "");
+    return slug && /^[a-z0-9]/.test(slug) ? slug : "";
+  };
+  const manual = (field) => ownership[field] === "manual";
+  const result = { id: null, name: null, agent: null };
+  const providerName = provider ? bound(provider.name || provider.id || "") : "";
+  if (!manual("agent") && providerName) result.agent = providerName;
+  if (!manual("name")) {
+    const parts = [providerName, bound(modelSelector), bound(effortSelector)].filter((part) => part);
+    if (parts.length) result.name = bound(parts.join(" · "));
+  }
+  if (!manual("id")) {
+    const base = slugify(modelSelector || (provider ? provider.id || provider.name : ""));
+    if (base) {
+      const taken = new Set(existingIds.filter((value) => typeof value === "string"));
+      let candidate = base; let suffix = 2;
+      while (taken.has(candidate) && suffix <= 100) {
+        const tail = "-" + suffix;
+        candidate = base.slice(0, 128 - tail.length).replace(/-+$/g, "") + tail;
+        suffix += 1;
+      }
+      result.id = taken.has(candidate) ? null : candidate;
+    }
+  }
+  return result;
+}
+// END profile draft suggestions
   let catalogSnapshot = null;
   let catalogRevision = null;
   let savingProfile = false;
@@ -2039,6 +2087,37 @@ function renderTaskOutcome(snapshot) {
   };
   profileField("provider").addEventListener("change",resetProbeChoices);
   profileField("model_selector").addEventListener("input",resetProbeChoices);
+  let draftOwner = { id: null, name: null, agent: null };
+  for (const name of ["id", "name", "agent"]) {
+    profileField(name).addEventListener("input", () => { draftOwner[name] = "manual"; applyDraftSuggestions(); });
+  }
+  const applyDraftSuggestions = () => {
+    const summary = document.getElementById("profile-draft-summary");
+    if (!catalogSnapshot || editProfile.value) { if (summary) summary.textContent = ""; return; }
+    const providerMeta = catalogSnapshot.providers.find((p) => p.id === profileField("provider").value) || null;
+    const suggestions = suggestProfileDraft({
+      provider: providerMeta,
+      modelSelector: profileField("model_selector").value,
+      effortSelector: profileField("effort_selector").value,
+      existingIds: catalogSnapshot.profiles.map((p) => p.id),
+      ownership: draftOwner,
+    });
+    for (const name of ["id", "name", "agent"]) {
+      if (suggestions[name] == null) {
+        if (draftOwner[name] === "auto") { profileField(name).value = ""; draftOwner[name] = null; }
+        continue;
+      }
+      profileField(name).value = suggestions[name];
+      draftOwner[name] = "auto";
+    }
+    if (summary) {
+      const parts = [profileField("name").value, providerMeta ? providerMeta.name : "", profileField("model_selector").value].filter((part) => part);
+      summary.textContent = parts.length ? `Draft: ${parts.join(" · ")} — nothing saved yet.` : "";
+    }
+  };
+  profileField("provider").addEventListener("change", applyDraftSuggestions);
+  profileField("model_selector").addEventListener("input", applyDraftSuggestions);
+  profileField("effort_selector").addEventListener("input", applyDraftSuggestions);
   const fillChoices = (select, values, current) => {
     select.replaceChildren(); const blank=document.createElement("option"); blank.value=""; blank.textContent=values.length ? "Choose a reported option" : "No selector reported"; select.append(blank);
     for (const value of values) { const option=document.createElement("option"); option.value=value; option.textContent=value; select.append(option); }
@@ -2050,10 +2129,12 @@ function renderTaskOutcome(snapshot) {
     profileField("effort_selector").value=""; profileField("effort").value="";
     fillChoices(effortOptions,[],null); uncertainProbe=null;
     probeStatus.textContent="Model copied into this draft. Inspect again to get this model's effort choices; nothing has been saved or started as a task.";
+    applyDraftSuggestions();
   });
   effortOptions.addEventListener("change", () => {
     if (!effortOptions.value) return;
     profileField("effort_selector").value=effortOptions.value; profileField("effort").value=effortOptions.value.slice(0,128);
+    applyDraftSuggestions();
   });
   document.getElementById("control-probe-start").addEventListener("click", async () => {
     if (stopped || inspectingControls) return;
@@ -2082,6 +2163,9 @@ function renderTaskOutcome(snapshot) {
   });
   const fillProfile = () => {
     resetProbeChoices();
+    draftOwner = { id: null, name: null, agent: null };
+    const summary = document.getElementById("profile-draft-summary");
+    if (summary) summary.textContent = "";
     const profile = catalogSnapshot?.profiles.find((p) => p.id === editProfile.value);
     for (const name of fields) {
       const key = name === "inference" ? "inference_provider" : name;
@@ -2089,6 +2173,7 @@ function renderTaskOutcome(snapshot) {
     }
     profileField("id").readOnly = Boolean(profile);
     profileField("default").checked = Boolean(profile && profile.id === catalogSnapshot.default_profile);
+    applyDraftSuggestions();
   };
   editProfile.addEventListener("change", fillProfile);
   const renderCatalog = (snapshot) => {
@@ -2127,6 +2212,14 @@ function renderTaskOutcome(snapshot) {
     editProfile.value = snapshot.profiles.some((p) => p.id===previous) ? previous : "";
     if (initial) fillProfile();
   };
+  document.getElementById("profile-save").addEventListener("click", () => {
+    const advanced = document.getElementById("profile-advanced");
+    if (advanced && advanced.querySelector(":invalid")) advanced.open = true;
+  });
+  profileForm.addEventListener("invalid", (event) => {
+    const advanced = document.getElementById("profile-advanced");
+    if (advanced && !advanced.open && advanced.contains(event.target)) { advanced.open = true; event.target.focus(); }
+  }, true);
   profileForm.addEventListener("submit", async (event) => {
     event.preventDefault();
     if (stopped || savingProfile || !catalogSnapshot?.editable) return;

@@ -1872,3 +1872,12 @@ pre {
 }
 
 #active-preview-stop { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
+
+/* Guided profile setup. */
+#profile-editor #profile-advanced{margin:0.5rem 0;padding:0.4rem 0.6rem;border:1px solid rgba(34,211,238,0.3);border-radius:8px;background:rgba(8,145,178,0.08);}
+#profile-editor #profile-advanced summary{cursor:pointer;color:#67e8f9;font-weight:600;}
+#profile-editor #profile-advanced[open] summary{margin-bottom:0.4rem;}
+#profile-editor .profile-quick-note{color:#a5b4fc;font-size:0.85rem;margin:0.2rem 0;}
+#profile-editor .profile-quick-summary{color:#c4b5fd;font-size:0.85rem;min-height:1.2em;margin:0.2rem 0;}
+
+#profile-editor .profile-quick-summary{overflow-wrap:anywhere;}

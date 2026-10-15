@@ -8,6 +8,11 @@ public releases begin.
 
 ## [Unreleased]
 
+- Simplify profile setup with visible agent/model/effort discovery and name,
+  manual technical fields under Advanced, and local new-draft suggestions that
+  preserve manual edits and intentionally empty fields. Saves remain explicit
+  and apply to the next launch.
+
 - Bring task completion, scoped check status and next actions into a contextual
   result card below the response. Keep preview/check consent, preserve change
   drafts, and disclose metrics and technical details progressively.

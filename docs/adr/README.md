@@ -68,3 +68,4 @@ Current records:
 
 - [0052 — Explicit static result previews](0052-static-result-preview.md)
 - [0053 — Contextual task outcome](0053-contextual-task-outcome.md)
+- [0054 — Guided profile drafts](0054-guided-profile-drafts.md)

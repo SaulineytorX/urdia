@@ -347,9 +347,8 @@
         <details id="profile-editor"><summary>Create or edit a profile</summary>
           <form id="profile-form" autocomplete="off">
             <label for="profile-edit-select">Profile</label><select id="profile-edit-select"></select>
-            <label for="profile-edit-id">Profile ID</label><input id="profile-edit-id" maxlength="128" required pattern="[a-z0-9]+(-[a-z0-9]+)*" placeholder="backend">
-            <label for="profile-edit-name">Name</label><input id="profile-edit-name" maxlength="128" required placeholder="My backend agent">
             <label for="profile-edit-provider">Registered agent launch</label><select id="profile-edit-provider" required></select>
+            <p class="profile-quick-note">Each profile needs its own dedicated registered launch. Saving starts no agent and grants no permissions.</p>
             <fieldset class="control-discovery"><legend>Discover model and effort options</legend>
               <p>Starts a temporary session with the selected trusted agent in this workspace. No task is sent; permissions are denied. The agent may contact its service or keep its own records. Maximum eight inspections per host.</p>
               <label><input id="control-probe-confirm" type="checkbox"> I agree to start this agent for an options check.</label>
@@ -358,6 +357,10 @@
               <label for="control-effort-options">Efforts for the inspected model</label><select id="control-effort-options" disabled><option value="">Inspect options first</option></select>
               <p>Choose a model, then inspect again to refresh its effort options. These are agent reports, not proof of account access; exact settings are checked again before a task.</p>
             </fieldset>
+            <label for="profile-edit-name">Name</label><input id="profile-edit-name" maxlength="128" required placeholder="My backend agent">
+            <p id="profile-draft-summary" class="profile-quick-summary" role="status"></p>
+            <details id="profile-advanced"><summary>Advanced: exact IDs and labels</summary>
+            <label for="profile-edit-id">Profile ID</label><input id="profile-edit-id" maxlength="128" required pattern="[a-z0-9]+(-[a-z0-9]+)*" placeholder="backend">
             <label for="profile-edit-agent">Agent name</label><input id="profile-edit-agent" maxlength="128" required placeholder="Codex, Qwen or your agent">
             <label for="profile-edit-inference">Inference provider name</label><input id="profile-edit-inference" maxlength="128" required value="Unknown">
             <label for="profile-edit-model">Model name</label><input id="profile-edit-model" maxlength="128" required>
@@ -365,6 +368,7 @@
             <p>For reviewed execution, enter the exact model and effort IDs supported by the agent. Names alone do not configure them. Urdia checks agent reports before sending a task.</p>
             <label for="profile-edit-model-selector">Exact agent model ID (optional)</label><input id="profile-edit-model-selector" maxlength="1024" spellcheck="false">
             <label for="profile-edit-effort-selector">Exact agent effort ID (optional)</label><input id="profile-edit-effort-selector" maxlength="1024" spellcheck="false">
+            </details>
             <label><input id="profile-edit-default" type="checkbox"> Make this my default for the next launch</label>
             <button id="profile-save" type="submit">Save for next launch</button>
             <p id="profile-save-status" role="status"></p>

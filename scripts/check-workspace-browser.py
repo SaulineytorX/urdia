@@ -256,6 +256,7 @@ def check_agent_registration(browser,args):
             assert not errors,'registration script error (private details omitted)'
             page.set_viewport_size({'width':1440,'height':1100})
             page.locator('#profile-editor').evaluate('(e)=>e.open=true')
+            page.locator('#profile-advanced > summary').click()
             page.locator('#profile-edit-id').fill('new-backend');page.locator('#profile-edit-name').fill('New backend agent')
             page.locator('#profile-edit-provider').select_option('new-agent');page.locator('#profile-edit-agent').fill('Reference ACP agent')
             page.locator('#control-probe-start').click()
@@ -310,8 +311,9 @@ def check_profile_edit_session(browser,args,store):
         expect(page.locator('#profile-catalog')).to_be_visible()
         expect(page.locator('#catalog-list')).to_contain_text('Offline backend profile')
         assert page.locator('#catalog-list img').count()==0
-        page.locator('#profile-editor summary').click()
+        page.locator('#profile-editor > summary').click()
         page.locator('#profile-edit-select').select_option('backend')
+        page.locator('#profile-advanced > summary').click()
         expect(page.locator('#profile-edit-model-selector')).to_have_value('model-b(openai)')
         page.locator('#profile-edit-name').fill('New backend settings')
         page.locator('#profile-edit-model-selector').fill('model-a(openai)')
@@ -640,7 +642,7 @@ def check_setup_guide(browser, args):
         assert len(snapshot()["turns"]) == 0, "guide navigation started a task"
         page.locator('[data-setup-step="2"]').click()
         page.locator("#profile-editor").evaluate("n=>n.open=true")
-        draft = page.locator("#profile-form input").first
+        draft = page.locator("#profile-edit-name")
         draft.fill("setup-draft")
         page.locator('[data-view="settings"]').first.click()
         expect(draft).to_have_value("setup-draft")

@@ -605,3 +605,19 @@ current draft is preserved; sending the next task, running checks and preparing 
 trusted browser-code preview still require their existing explicit actions.
 Technical details remain available without crowding the first-task empty state.
 See [ADR0053](adr/0053-contextual-task-outcome.md).
+
+## Guided profile setup
+
+In **Decision engines → Create or edit a profile**, choose the registered agent,
+explicitly inspect its model options, select a model, inspect again for that
+model's effort options, then give the profile a name and save. Inspection is
+optional; it starts a temporary trusted executable with no task and denied
+permissions, and may contact its service. It does not verify account access.
+
+New drafts suggest a unique profile ID, name and agent label locally. Any field
+you type or deliberately clear stays yours; existing profiles are never renamed
+by suggestions. No key, inference provider or model availability is guessed.
+**Advanced: exact IDs and labels** contains the manual configuration path and
+opens automatically if a required field there is missing. Each profile still
+needs its own dedicated registered launch. Save applies at the next host launch;
+it does not run work or grant permissions.
