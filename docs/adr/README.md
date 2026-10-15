@@ -65,3 +65,5 @@ Current records:
 - [0050 — Owner opt-in automatic Jev preview](0050-owner-opt-in-automatic-jev.md)
 
 - [0051 — Jev coding-profile preference](0051-jev-coding-profile-preference.md)
+
+- [0052 — Explicit static result previews](0052-static-result-preview.md)

@@ -1550,3 +1550,5 @@ pre {
   .navigation { flex-wrap: wrap; }
   .topbar { flex-wrap: wrap; gap: 6px 12px; height: auto; min-height: 52px; padding-top: 8px; padding-bottom: 8px; }
 }
+
+.result-preview-panel{border-left-color:#86e9de}.result-preview-link{display:inline-flex;align-items:center;text-decoration:none;padding:9px 14px;border-radius:8px;background:#b5f3cf;color:#06120d;font-weight:650}.result-preview-panel label{display:flex;gap:9px;align-items:flex-start}.result-preview-panel input[type=checkbox]{flex:0 0 auto;margin-top:3px}.result-preview-panel p{overflow-wrap:anywhere}.result-preview-panel .conversation-actions{flex-wrap:wrap}

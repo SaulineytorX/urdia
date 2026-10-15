@@ -415,7 +415,7 @@
       }
     }
     if (selectionDraftRevision === null) nextProfile.value=selection.selected_profile || "";
-    const busy=Boolean(snapshot.active_turn_id || snapshot.verification?.active || snapshot.reconnection?.status === "reconnecting" || conversationSubmitting || automaticRoute || selectingProfile || pendingPrompt);
+    const busy=Boolean(snapshot.active_turn_id || (snapshot.verification?.active || snapshot.result_preview?.preparing) || snapshot.reconnection?.status === "reconnecting" || conversationSubmitting || automaticRoute || selectingProfile || pendingPrompt);
     nextProfile.disabled=busy;
     document.getElementById("next-profile-apply").disabled=busy || nextProfile.value === (selection.selected_profile || "");
     const activeChoice = selection.choices[selection.selected_profile];
@@ -429,7 +429,7 @@
   });
   document.getElementById("next-profile-form").addEventListener("submit", async (event) => {
     event.preventDefault();
-    if (stopped || selectingProfile || conversationSubmitting || pendingPrompt || latestConversationSnapshot.active_turn_id || latestConversationSnapshot.verification?.active) return;
+    if (stopped || selectingProfile || conversationSubmitting || pendingPrompt || latestConversationSnapshot.active_turn_id || (latestConversationSnapshot.verification?.active || latestConversationSnapshot.result_preview?.preparing)) return;
     selectionRequest ||= {revision:selectionDraftRevision ?? latestConversationSnapshot.profile_selection.revision, profile_id:nextProfile.value || null, confirm:true};
     selectingProfile=true;
     renderConversation(latestConversationSnapshot);
@@ -450,6 +450,88 @@
   });
 
   let pendingVerification = null;
+  let resultPreviewSending = false;
+  let resultPreviewPending = null;
+  let resultPreviewNotice = "";
+  let resultPreviewTurn = null;
+  // BEGIN result preview URL validation
+  function resultPreviewUrl(value) {
+    try {
+      const url = new URL(value);
+      return url.protocol === "http:" && /^p-[0-9a-f]{48}\.localhost$/.test(url.hostname) &&
+        Number(url.port) > 0 && Number(url.port) < 65536 && url.pathname === "/" &&
+        !url.username && !url.password && !url.search && !url.hash ? url.href : null;
+    } catch { return null; }
+  }
+  // END result preview URL validation
+  const renderResultPreview = (snapshot) => {
+    const panel = document.getElementById("result-preview-panel");
+    const view = snapshot.result_preview;
+    panel.hidden = !view || stopped;
+    if (!view || stopped) return;
+    const turn = snapshot.turns.at(-1);
+    const consent = document.getElementById("result-preview-consent");
+    if (resultPreviewTurn !== turn?.turn_id) {
+      resultPreviewTurn = turn?.turn_id; consent.checked = false; resultPreviewNotice = "";
+    }
+    const job = view.latest;
+    if (resultPreviewPending && job?.request_id === resultPreviewPending.request_id) {
+      resultPreviewPending = null; consent.checked = false; resultPreviewNotice = "";
+    }
+    const busy = Boolean(snapshot.active_turn_id || (snapshot.verification?.active || snapshot.result_preview?.preparing) || view.preparing || snapshot.reconnection?.status === "reconnecting" || conversationSubmitting || automaticRoute || selectingProfile || resultPreviewSending || pendingPrompt);
+    document.getElementById("result-preview-start").disabled = busy || Boolean(resultPreviewPending) || turn?.status !== "completed" || !consent.checked;
+    consent.disabled = busy || Boolean(resultPreviewPending);
+    const link = document.getElementById("result-preview-open");
+    const url = job?.status === "ready" ? resultPreviewUrl(job.url) : null;
+    link.hidden = !url;
+    if (url) link.href = url; else link.removeAttribute("href");
+    document.getElementById("result-preview-stop").hidden = !job || !["queued", "preparing", "ready"].includes(job.status);
+    document.getElementById("result-preview-stop").disabled = resultPreviewSending;
+    document.getElementById("result-preview-retry").hidden = !resultPreviewPending;
+    document.getElementById("result-preview-retry").disabled = resultPreviewSending || busy || resultPreviewPending?.turn_id !== turn?.turn_id;
+    document.getElementById("result-preview-dismiss").hidden = !resultPreviewPending;
+    const labels = { queued:"Preparing your captured version…", preparing:"Capturing the static project files…", ready:job?.current_task ? "Ready. Open your captured web result." : "Earlier task: this captured version has not changed.", stopped:"Preview link stopped. Close its browser tab when finished.", expired:"Preview expired. Prepare a new one to continue.", unavailable:"No preview was opened. Use a static project with index.html and supported local assets; linked, configuration or oversized files are not served." };
+    document.getElementById("result-preview-status").textContent = resultPreviewNotice || (job ? labels[job.status] || "Preview unavailable." : "Finish a task, review the browser-code permission and prepare a preview.");
+    document.getElementById("result-preview-detail").textContent = url ? `${job.file_count} captured files · version ${job.fingerprint?.slice(0, 8)} · ${Math.max(1, Math.ceil(job.expires_in_seconds / 60))} min remaining. Keep this private link to yourself.` : "No AI call. Checks and tool permissions remain separate.";
+  };
+  const submitResultPreview = async (retry = false) => {
+    const snapshot = latestConversationSnapshot;
+    const turn = snapshot.turns.at(-1);
+    if (stopped || resultPreviewSending || !snapshot.result_preview || snapshot.active_turn_id || (snapshot.verification?.active || snapshot.result_preview?.preparing) || snapshot.result_preview.preparing || turn?.status !== "completed") return;
+    if (!retry && (!document.getElementById("result-preview-consent").checked || resultPreviewPending)) return;
+    if (retry && (!resultPreviewPending || resultPreviewPending.turn_id !== turn.turn_id)) return;
+    resultPreviewPending ||= { request_id:newTurnId(), turn_id:turn.turn_id, confirm_execution:true };
+    resultPreviewSending = true; resultPreviewNotice = "Preparing your preview…"; renderResultPreview(snapshot);
+    try {
+      const response = await request("/api/conversation/result", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(resultPreviewPending)});
+      if (response.status === 401) return lockUi();
+      if (!response.ok) {
+        resultPreviewPending = null; document.getElementById("result-preview-consent").checked = false;
+        resultPreviewNotice = "Preview was not admitted. Finish active work and review permission again."; return;
+      }
+      const accepted = await response.json(); resultPreviewPending = null; resultPreviewNotice = "";
+      document.getElementById("result-preview-consent").checked = false; renderConversation(accepted);
+    } catch {
+      resultPreviewNotice = "Delivery is unknown. Retry this same request or discard the retry; no new preview request is sent automatically.";
+    } finally { resultPreviewSending = false; if (!stopped) renderResultPreview(latestConversationSnapshot); }
+  };
+  document.getElementById("result-preview-consent").addEventListener("change", () => renderResultPreview(latestConversationSnapshot));
+  document.getElementById("result-preview-form").addEventListener("submit", (event) => { event.preventDefault(); submitResultPreview(); });
+  document.getElementById("result-preview-retry").addEventListener("click", () => submitResultPreview(true));
+  document.getElementById("result-preview-dismiss").addEventListener("click", () => { resultPreviewPending = null; resultPreviewNotice = "Retry discarded. An already-admitted preview may still appear; stop it if needed."; document.getElementById("result-preview-consent").checked = false; renderResultPreview(latestConversationSnapshot); });
+  document.getElementById("result-preview-stop").addEventListener("click", async () => {
+    const id = latestConversationSnapshot.result_preview?.latest?.request_id;
+    if (!id || stopped || resultPreviewSending) return;
+    resultPreviewSending = true; renderResultPreview(latestConversationSnapshot);
+    try {
+      const response = await request("/api/conversation/result/stop", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({request_id:id})});
+      if (response.status === 401) return lockUi();
+      if (!response.ok) throw new Error("stop");
+      resultPreviewNotice = ""; renderConversation(await response.json());
+    } catch { resultPreviewNotice = "Close delivery is unknown. Use Stop preview again; it never opens a new preview."; }
+    finally { resultPreviewSending = false; if (!stopped) renderResultPreview(latestConversationSnapshot); }
+  });
+
   let verificationSending = false;
   let verificationTarget = null;
   const verificationContracts = {
@@ -505,7 +587,7 @@
       consent.checked = false;
       document.getElementById("verification-note").textContent = "";
     }
-    const busy = Boolean(snapshot.active_turn_id || view.active || snapshot.reconnection?.status === "reconnecting" || verificationSending);
+    const busy = Boolean(snapshot.active_turn_id || view.active || snapshot.result_preview?.preparing || snapshot.reconnection?.status === "reconnecting" || verificationSending);
     verificationContract.disabled = busy || Boolean(pendingVerification);
     document.getElementById("verification-spec").textContent = verificationContracts[verificationContract.value].spec;
     document.getElementById("verification-consent-text").textContent = verificationContract.value.startsWith("frontend-") ? "I authorize executing this project's static page in a separate browser context. A temporary private loopback snapshot and Chromium sandbox are used; this is not proof of arbitrary-code isolation or application security." : "I authorize running this project’s Python as my user. It can access my files and network; this is not a sandbox.";
@@ -559,7 +641,7 @@
     event.preventDefault();
     const snapshot = latestConversationSnapshot;
     const turn = snapshot.turns.at(-1);
-    if (stopped || verificationSending || snapshot.active_turn_id || snapshot.verification?.active || turn?.status !== "completed" || !document.getElementById("verification-consent").checked) return;
+    if (stopped || verificationSending || snapshot.active_turn_id || (snapshot.verification?.active || snapshot.result_preview?.preparing) || turn?.status !== "completed" || !document.getElementById("verification-consent").checked) return;
     if (!pendingVerification || pendingVerification.turn_id !== turn.turn_id) pendingVerification = {request_id: newTurnId(), turn_id: turn.turn_id, contract: verificationContract.value, confirm_execution: true};
     verificationSending = true; renderVerification(snapshot);
     const note = document.getElementById("verification-note");
@@ -653,7 +735,7 @@
       }
     };
     const promptFor = (step, index) => `Project objective: ${plan.objective}\nStep ${index + 1}/${plan.steps.length}: ${step.title}\nScope / files allowed: ${step.scope}\nAcceptance criteria: ${step.acceptance}\nWork only on this step. Explain the changes and checks performed. Do not start later steps. Urdia permissions still require the operator's decision.`;
-    const busy = () => Boolean(stopped || conversationSubmitting || automaticRoute || selectingProfile || pendingPrompt || latestConversationSnapshot.active_turn_id || latestConversationSnapshot.verification?.active || latestConversationSnapshot.reconnection?.status === "reconnecting" || reserved || pendingMutation || mutationSending || importing);
+    const busy = () => Boolean(stopped || conversationSubmitting || automaticRoute || selectingProfile || pendingPrompt || latestConversationSnapshot.active_turn_id || (latestConversationSnapshot.verification?.active || latestConversationSnapshot.result_preview?.preparing) || latestConversationSnapshot.reconnection?.status === "reconnecting" || reserved || pendingMutation || mutationSending || importing);
     const render = () => {
       const signature = JSON.stringify([plan, busy(), conversationSubmitting, reserved?.index, Boolean(pendingMutation), mutationSending, profileAdviceAvailable, importing, exporting, importVersion, importConfirm.checked, proposalVersion, revision, latestProposalTurn()?.turn_id, latestProposalTurn()?.status]);
       if (signature === lastRender) return;
@@ -1057,7 +1139,7 @@
     const mayReconnect = recovery && ["needed", "failed"].includes(recovery.status);
     recoveryButton.hidden = !mayReconnect;
     recoveryConsent.closest("label").hidden = !mayReconnect;
-    recoveryButton.disabled = Boolean(active) || Boolean(snapshot.verification?.active) || latestPermissionSnapshot.pending.length > 0 || reconnectingRequest || !recoveryConsent.checked;
+    recoveryButton.disabled = Boolean(active) || Boolean((snapshot.verification?.active || snapshot.result_preview?.preparing)) || latestPermissionSnapshot.pending.length > 0 || reconnectingRequest || !recoveryConsent.checked;
     if (recovery) {
       const result = document.getElementById("reconnection-result");
       if (!pendingReconnection || pendingReconnection.revision !== recovery.revision) {
@@ -1070,9 +1152,10 @@
     conversationCancel.hidden = !active;
     conversationCancel.disabled = !active || active.status === "cancelling";
     renderVerification(snapshot);
+    renderResultPreview(snapshot);
     taskPlan.observe(snapshot);
     renderProjectSummary(snapshot);
-    conversationSubmit.disabled = Boolean(active) || Boolean(snapshot.verification?.active) || recovering || (recovery?.status === "failed" && !snapshot.profile_selection?.selected_profile) || conversationSubmitting || automaticRoute || selectingProfile;
+    conversationSubmit.disabled = Boolean(active) || Boolean((snapshot.verification?.active || snapshot.result_preview?.preparing)) || recovering || (recovery?.status === "failed" && !snapshot.profile_selection?.selected_profile) || conversationSubmitting || automaticRoute || selectingProfile;
     conversationSubmit.disabled ||= Boolean(automaticRoute) || (routingMode.value === "jev" && !automaticReady);
     conversationInput.disabled = conversationSubmitting || Boolean(automaticRoute);
     routingMode.disabled = conversationSubmitting || Boolean(active) || Boolean(automaticRoute);
@@ -1216,7 +1299,7 @@
     event.preventDefault();
     const text = conversationInput.value;
     if (!taskPlan.maySend(text)) { conversationHelp.textContent = "Restore the pending planned draft and retry before sending a different task."; return; }
-    if (!text.trim() || conversationSubmitting || automaticRoute || selectingProfile || automaticRoute || latestConversationSnapshot.active_turn_id || latestConversationSnapshot.verification?.active) return;
+    if (!text.trim() || conversationSubmitting || automaticRoute || selectingProfile || automaticRoute || latestConversationSnapshot.active_turn_id || (latestConversationSnapshot.verification?.active || latestConversationSnapshot.result_preview?.preparing)) return;
     if (routingMode.value === "jev") {
       if (!automaticReady || pendingPrompt) return;
       automaticRoute = {request_id:newTurnId(), turn_id:newTurnId(), objective:text, plan_link:taskPlan.linkFor(text), phase:"submit", preview:null};
@@ -1903,7 +1986,7 @@
   const firstTaskPrepare = document.getElementById("first-task-prepare");
   let firstTaskNotice = "No task prepared. Review and send it yourself in Conversation.";
   const firstTaskBusy = () => setupBlocked() || setupSubmitting || selectingProfile || Boolean(
-    latestConversationSnapshot.verification?.active || automaticRoute || automaticInFlight ||
+    (latestConversationSnapshot.verification?.active || latestConversationSnapshot.result_preview?.preparing) || automaticRoute || automaticInFlight ||
     pendingPrompt || pendingVerification || verificationSending || latestPermissionSnapshot.pending.length ||
     (setupTurnId && !latestConversationSnapshot.turns.some((turn) => turn.turn_id === setupTurnId))
   );

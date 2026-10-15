@@ -7,6 +7,11 @@ pub use catalog::{
     ControlProbeError, ControlProbeRequest, ControlProbeResult, ProfileDraft, RegisterAgentRequest,
     RegisteredAgentView, SaveProfileRequest,
 };
+mod result_preview;
+pub use result_preview::{
+    ResultPreviewBundle, ResultPreviewError, ResultPreviewJob, ResultPreviewLease,
+    ResultPreviewRequest, ResultPreviewSnapshot,
+};
 mod verification;
 pub use verification::{
     FrontendCounts, UnittestCounts, VerificationCheck, VerificationContract, VerificationError,
@@ -365,6 +370,8 @@ fn live_router_with_options(
         )
         .route("/api/conversation/reconnect", post(reconnect_conversation))
         .route("/api/conversation/cancel", post(cancel_conversation))
+        .route("/api/conversation/result", post(open_result_preview))
+        .route("/api/conversation/result/stop", post(stop_result_preview))
         .route("/api/conversation/verify", post(verify_conversation))
         .route("/api/conversation/verify/cancel", post(cancel_verification))
         .route("/api/conversation/plan", post(mutate_project_plan))
@@ -840,6 +847,57 @@ async fn select_conversation_profile(
             (status, Json(ConversationErrorBody { error: code })).into_response()
         }
     }
+}
+
+async fn open_result_preview(
+    State(state): State<LiveState>,
+    payload: Result<Json<ResultPreviewRequest>, axum::extract::rejection::JsonRejection>,
+) -> Response {
+    let Some(conversation) = state.conversation else {
+        return (StatusCode::NOT_FOUND, "unavailable").into_response();
+    };
+    let Ok(Json(request)) = payload else {
+        return (StatusCode::BAD_REQUEST, "invalid_request").into_response();
+    };
+    match conversation.submit_result_preview(request) {
+        Ok(snapshot) => (StatusCode::ACCEPTED, Json(snapshot)).into_response(),
+        Err(error) => result_preview_error(error),
+    }
+}
+#[derive(serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+struct StopResultRequest {
+    request_id: uuid::Uuid,
+}
+async fn stop_result_preview(
+    State(state): State<LiveState>,
+    payload: Result<Json<StopResultRequest>, axum::extract::rejection::JsonRejection>,
+) -> Response {
+    let Some(conversation) = state.conversation else {
+        return (StatusCode::NOT_FOUND, "unavailable").into_response();
+    };
+    let Ok(Json(request)) = payload else {
+        return (StatusCode::BAD_REQUEST, "invalid_request").into_response();
+    };
+    match conversation.stop_result_preview(request.request_id) {
+        Ok(snapshot) => Json(snapshot).into_response(),
+        Err(error) => result_preview_error(error),
+    }
+}
+fn result_preview_error(error: ResultPreviewError) -> Response {
+    let (status, message) = match error {
+        ResultPreviewError::Unavailable => (StatusCode::NOT_FOUND, "unavailable"),
+        ResultPreviewError::Unconfirmed => (StatusCode::BAD_REQUEST, "confirmation_required"),
+        ResultPreviewError::Busy => (StatusCode::CONFLICT, "busy"),
+        ResultPreviewError::Stale => (StatusCode::CONFLICT, "stale_turn"),
+        ResultPreviewError::Conflict => (StatusCode::CONFLICT, "idempotency_conflict"),
+        ResultPreviewError::Limit => (StatusCode::TOO_MANY_REQUESTS, "preview_limit"),
+        ResultPreviewError::HostUnavailable => {
+            (StatusCode::SERVICE_UNAVAILABLE, "host_unavailable")
+        }
+        ResultPreviewError::InvalidSource => (StatusCode::BAD_REQUEST, "invalid_static_source"),
+    };
+    (status, message).into_response()
 }
 
 async fn verify_conversation(
@@ -1516,6 +1574,60 @@ mod tests {
         Event, PermissionBroker, PermissionLocation, PermissionOperation, PermissionOperationKind,
         PermissionRequest, SensitiveValue, SessionId, WorkspacePath,
     };
+
+    #[tokio::test]
+    async fn result_preview_api_is_authenticated_prompt_free_and_disabled_until_enabled() {
+        let (hub, mut receiver) = ConversationHub::new();
+        let turn = uuid::Uuid::new_v4();
+        let id = uuid::Uuid::new_v4();
+        let app = app_for_conversation(&hub, "test-token");
+        for uri in ["/api/conversation/result", "/api/conversation/result/stop"] {
+            let response = app
+                .clone()
+                .oneshot(
+                    Request::builder()
+                        .method("POST")
+                        .uri(uri)
+                        .header("content-type", "application/json")
+                        .body(Body::from("PRIVATE_SOURCE"))
+                        .unwrap(),
+                )
+                .await
+                .unwrap();
+            assert_eq!(response.status(), StatusCode::UNAUTHORIZED);
+            assert!(!response_text(response).await.contains("PRIVATE_SOURCE"));
+        }
+        let body = json!({"request_id":id,"turn_id":turn,"confirm_execution":true}).to_string();
+        let request = |body: String| {
+            Request::builder()
+                .method("POST")
+                .uri("/api/conversation/result")
+                .header("authorization", "Bearer test-token")
+                .header("content-type", "application/json")
+                .body(Body::from(body))
+                .unwrap()
+        };
+        assert_eq!(
+            app.clone()
+                .oneshot(request(body.clone()))
+                .await
+                .unwrap()
+                .status(),
+            StatusCode::NOT_FOUND
+        );
+        hub.enable_result_preview();
+        assert_eq!(app.clone().oneshot(request(json!({"request_id":id,"turn_id":turn,"confirm_execution":true,"path":"PRIVATE_SOURCE"}).to_string())).await.unwrap().status(),StatusCode::BAD_REQUEST);
+        hub.submit_prompt(turn, "fixed project".into()).unwrap();
+        receiver.try_recv().unwrap();
+        hub.complete(turn).unwrap();
+        let response = app.oneshot(request(body)).await.unwrap();
+        assert_eq!(response.status(), StatusCode::ACCEPTED);
+        assert_eq!(
+            receiver.try_recv().unwrap(),
+            ConversationCommand::OpenResult { request_id: id }
+        );
+        assert!(receiver.try_recv().is_err());
+    }
 
     #[tokio::test]
     async fn verification_api_authenticates_redacts_and_requires_opt_in() {

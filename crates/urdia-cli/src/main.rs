@@ -8,6 +8,7 @@ mod local_laya;
 mod profile_evaluation;
 mod profile_store;
 mod profiles;
+mod result_source;
 mod routing_eval;
 mod verification;
 
@@ -1555,6 +1556,9 @@ async fn chat_provider(
     if !trusted_session {
         conversation.enable_reconnection();
     }
+    if result_source::available() {
+        conversation.enable_result_preview();
+    }
     conversation.configure_profile_selection(profile_choices);
     conversation.set_live_controls(session.live_controls());
     let reader = SqliteEventStore::open_read_only(&database)?;
@@ -1700,6 +1704,20 @@ async fn chat_provider(
                             Err(error) => conversation.finish_reconnection(revision, Err(provider_failure_kind(&error))),
                         }
                     }
+                    Some(ConversationCommand::OpenResult { request_id }) => {
+                        if !conversation.begin_result_preview(request_id) { continue; }
+                        let project = workspace.as_path().to_path_buf();
+                        let hub = conversation.clone();
+                        turns.spawn(async move {
+                            let bundle = tokio::task::spawn_blocking(move || result_source::snapshot(&project)).await.unwrap_or(None);
+                            let lease = match bundle {
+                                Some(bundle) => urdia_ui::ResultPreviewLease::start(bundle).await.ok(),
+                                None => None,
+                            };
+                            hub.finish_result_preview(request_id, lease);
+                            (request_id, Ok(()))
+                        });
+                    }
                     Some(ConversationCommand::Verify { request_id, contract }) => {
                         if !conversation.begin_verification(request_id) { continue; }
                         let (sender, receiver) = mpsc::channel(1);
@@ -1751,6 +1769,7 @@ async fn chat_provider(
     }
     .await;
 
+    conversation.stop_result_previews();
     let ui_result = live_ui.stop().await;
     run_result.and(ui_result)
 }

@@ -24,6 +24,7 @@ urdia-decision-typellm = { path = "../urdia-decision-typellm", version = "0.1.0"
 urdia-routing = { path = "../urdia-routing", version = "0.1.0" }
 serde_json.workspace = true
 tempfile.workspace = true
+libc = "0.2.189"
 tokio = { workspace = true, features = ["process", "io-util"] }
 uuid.workspace = true
 

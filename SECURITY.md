@@ -36,3 +36,14 @@ returned to the browser or injected into agent environments by this connector.
 Same-user agents remain outside secret isolation. See
 [Jev configuration](docs/jev-credentials.md) for shared-key scope, timeout ambiguity
 and native-vault verification limits.
+
+## Static result previews
+
+Linux/WSL Conversation can explicitly capture trusted static workspace files and
+open them on a separate fresh private localhost origin. The authenticated host
+accepts no client path or command. It serves immutable bounded bytes, with an
+exact Host capability and no control API, for at most 15 minutes. Browser code
+runs when opened; the CSP is not complete network isolation or a security
+sandbox. Stopping the link does not stop code already loaded in a tab. Close the
+tab too. Do not share preview links or open untrusted project code. See
+[the preview guide](docs/result-preview.md) and ADR0052.

@@ -8,6 +8,10 @@ public releases begin.
 
 ## [Unreleased]
 
+- Add explicitly consented static web-result previews on Linux/WSL, using bounded
+  immutable captures, a separate fresh localhost origin, private expiring links
+  and replay-safe preparation. No build, install or extra model call is run.
+
 - Include the unmodified Launchboard app from an actual Jev-selected Codex-medium
   task, independent browser acceptance and explicit single-run evidence limits.
 

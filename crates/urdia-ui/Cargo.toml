@@ -13,6 +13,7 @@ axum.workspace = true
 async-trait.workspace = true
 serde.workspace = true
 serde_json.workspace = true
+sha2.workspace = true
 time.workspace = true
 tokio.workspace = true
 urdia-core = { path = "../urdia-core", version = "0.1.0" }

@@ -585,3 +585,10 @@ permissions and active trusted access block this preparation. The existing five
 setup steps and separately consented arithmetic response test remain available.
 No credential collection, installation, task dispatch or checks happen merely
 by opening the guide or preparing a draft.
+
+## Open a web result
+
+After a completed task, use **Open your web result** in Conversation to prepare
+and open a trusted static project in a separate tab. Linux/WSL only; requires
+`index.html` at the workspace root. Nothing is installed or built. Review the
+[preview guide](result-preview.md) for consent, temporary storage and limits.

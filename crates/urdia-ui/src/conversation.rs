@@ -43,6 +43,9 @@ pub enum ConversationCommand {
         text: String,
         profile_id: String,
     },
+    OpenResult {
+        request_id: Uuid,
+    },
     Verify {
         contract: VerificationContract,
         request_id: Uuid,
@@ -68,7 +71,9 @@ impl std::fmt::Debug for ConversationCommand {
                 .field("turn_id", turn_id)
                 .field("text_chars", &text.chars().count())
                 .finish(),
-            Self::Verify { request_id, .. } | Self::CancelVerification { request_id } => formatter
+            Self::OpenResult { request_id }
+            | Self::Verify { request_id, .. }
+            | Self::CancelVerification { request_id } => formatter
                 .debug_struct("Verification")
                 .field("request_id", request_id)
                 .finish(),
@@ -278,6 +283,8 @@ pub struct ConversationSnapshot {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub verification: Option<VerificationSnapshot>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub result_preview: Option<crate::ResultPreviewSnapshot>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub profile_selection: Option<ProfileSelectionSnapshot>,
     #[serde(skip_serializing_if = "HashMap::is_empty")]
     pub tool_activity: HashMap<Uuid, TurnToolActivity>,
@@ -429,6 +436,7 @@ struct ConversationState {
     reconnect_attempts: u64,
     primary_disconnected: bool,
     plans: PlanStore,
+    result_preview: crate::result_preview::ResultPreviewStore,
     verification_enabled: bool,
     verification_jobs: BTreeMap<Uuid, VerificationJob>,
     verification_order: Vec<Uuid>,
@@ -474,7 +482,10 @@ impl ConversationHub {
         if view.status == "reconnecting" {
             return Ok(state.snapshot());
         }
-        if state.active_turn().is_some() || state.verification_active() || state.reconnecting() {
+        if state.active_turn().is_some()
+            || (state.verification_active() || state.result_preview.preparing())
+            || state.reconnecting()
+        {
             return Err(ReconnectionError::Busy);
         }
         if !matches!(view.status, "needed" | "failed") {
@@ -528,6 +539,155 @@ impl ConversationHub {
         state.bump();
     }
 
+    pub fn enable_result_preview(&self) {
+        self.lock_state().result_preview.enabled = true;
+    }
+
+    pub fn submit_result_preview(
+        &self,
+        request: crate::ResultPreviewRequest,
+    ) -> Result<ConversationSnapshot, crate::ResultPreviewError> {
+        use crate::{ResultPreviewError as Error, ResultPreviewJob};
+        let mut state = self.lock_state();
+        if !state.result_preview.enabled {
+            return Err(Error::Unavailable);
+        }
+        if !request.confirm_execution {
+            return Err(Error::Unconfirmed);
+        }
+        if let Some(job) = state.result_preview.jobs.get(&request.request_id) {
+            return if job.turn_id != request.turn_id {
+                Err(Error::Conflict)
+            } else if state.result_preview.latest != Some(request.request_id) {
+                Err(Error::Stale)
+            } else {
+                Ok(state.snapshot())
+            };
+        }
+        if state.accepted_prompts.contains_key(&request.request_id)
+            || state.verification_jobs.contains_key(&request.request_id)
+        {
+            return Err(Error::Conflict);
+        }
+        if state.active_turn().is_some()
+            || state.verification_active()
+            || state.result_preview.preparing()
+            || state.reconnecting()
+        {
+            return Err(Error::Busy);
+        }
+        if !state.turns.back().is_some_and(|t| {
+            t.turn_id == request.turn_id && t.status == ConversationTurnStatus::Completed
+        }) {
+            return Err(Error::Stale);
+        }
+        if state.result_preview.jobs.len() >= 16 {
+            return Err(Error::Limit);
+        }
+        self.commands
+            .try_send(ConversationCommand::OpenResult {
+                request_id: request.request_id,
+            })
+            .map_err(|_| Error::HostUnavailable)?;
+        if let Some(id) = state.result_preview.latest {
+            state.result_preview.stop(id);
+        }
+        state.result_preview.jobs.insert(
+            request.request_id,
+            ResultPreviewJob {
+                request_id: request.request_id,
+                turn_id: request.turn_id,
+                status: "queued",
+                current_task: true,
+                url: None,
+                fingerprint: None,
+                file_count: None,
+                expires_in_seconds: 0,
+            },
+        );
+        state.result_preview.latest = Some(request.request_id);
+        state.bump();
+        Ok(state.snapshot())
+    }
+
+    pub fn begin_result_preview(&self, id: Uuid) -> bool {
+        let mut state = self.lock_state();
+        let Some(job) = state.result_preview.jobs.get(&id) else {
+            return false;
+        };
+        if job.status != "queued" {
+            return false;
+        }
+        if state.result_preview.latest != Some(id)
+            || !state.turns.back().is_some_and(|t| {
+                t.turn_id == job.turn_id && t.status == ConversationTurnStatus::Completed
+            })
+        {
+            state
+                .result_preview
+                .jobs
+                .get_mut(&id)
+                .expect("known request")
+                .status = "unavailable";
+            state.bump();
+            return false;
+        }
+        state
+            .result_preview
+            .jobs
+            .get_mut(&id)
+            .expect("known request")
+            .status = "preparing";
+        state.bump();
+        true
+    }
+
+    pub fn finish_result_preview(&self, id: Uuid, lease: Option<crate::ResultPreviewLease>) {
+        let mut state = self.lock_state();
+        let Some(job) = state
+            .result_preview
+            .jobs
+            .get_mut(&id)
+            .filter(|j| j.status == "preparing")
+        else {
+            return;
+        };
+        job.status = if lease.is_some() {
+            "ready"
+        } else {
+            "unavailable"
+        };
+        if let Some(lease) = lease {
+            state.result_preview.lease = Some((id, lease));
+        }
+        state.bump();
+    }
+
+    pub fn stop_result_preview(
+        &self,
+        id: Uuid,
+    ) -> Result<ConversationSnapshot, crate::ResultPreviewError> {
+        let mut state = self.lock_state();
+        if !state.result_preview.enabled {
+            return Err(crate::ResultPreviewError::Unavailable);
+        }
+        if !state.result_preview.jobs.contains_key(&id) {
+            return Err(crate::ResultPreviewError::Stale);
+        }
+        state.result_preview.stop(id);
+        state.bump();
+        Ok(state.snapshot())
+    }
+
+    pub fn stop_result_previews(&self) {
+        let mut state = self.lock_state();
+        let ids: Vec<_> = state.result_preview.jobs.keys().copied().collect();
+        for id in ids {
+            state.result_preview.stop(id);
+        }
+        state.bump();
+    }
+
     pub fn enable_verification(&self) {
         self.lock_state().verification_enabled = true;
     }
@@ -550,10 +710,15 @@ impl ConversationHub {
                 Err(VerificationError::Conflict)
             };
         }
-        if state.accepted_prompts.contains_key(&request.request_id) {
+        if state.accepted_prompts.contains_key(&request.request_id)
+            || state.result_preview.jobs.contains_key(&request.request_id)
+        {
             return Err(VerificationError::Conflict);
         }
-        if state.active_turn().is_some() || state.verification_active() || state.reconnecting() {
+        if state.active_turn().is_some()
+            || (state.verification_active() || state.result_preview.preparing())
+            || state.reconnecting()
+        {
             return Err(VerificationError::Busy);
         }
         if !state.turns.back().is_some_and(|turn| {
@@ -703,7 +868,10 @@ impl ConversationHub {
         if !confirm {
             return Err(ProfileSelectionError::Unconfirmed);
         }
-        if state.active_turn().is_some() || state.verification_active() || state.reconnecting() {
+        if state.active_turn().is_some()
+            || (state.verification_active() || state.result_preview.preparing())
+            || state.reconnecting()
+        {
             return Err(ProfileSelectionError::Busy);
         }
         let selection = state
@@ -751,8 +919,9 @@ impl ConversationHub {
     }
     pub fn mutate_plan(&self, request: PlanRequest) -> Result<ConversationSnapshot, PlanError> {
         let mut state = self.lock_state();
-        let busy =
-            state.active_turn().is_some() || state.verification_active() || state.reconnecting();
+        let busy = state.active_turn().is_some()
+            || (state.verification_active() || state.result_preview.preparing())
+            || state.reconnecting();
         state.plans.mutate(request, busy)?;
         state.bump();
         Ok(state.snapshot())
@@ -790,7 +959,10 @@ impl ConversationHub {
     pub fn validate_plan_step(&self, link: &PlanLink, text: &str) -> Result<(), PlanError> {
         let state = self.lock_state();
         state.plans.validate_link(link, text)?;
-        if state.active_turn().is_some() || state.verification_active() || state.reconnecting() {
+        if state.active_turn().is_some()
+            || (state.verification_active() || state.result_preview.preparing())
+            || state.reconnecting()
+        {
             return Err(PlanError::Busy);
         }
         Ok(())
@@ -836,7 +1008,9 @@ impl ConversationHub {
         validate_prompt(&text)?;
         let mut state = self.lock_state();
 
-        if state.verification_jobs.contains_key(&turn_id) {
+        if state.verification_jobs.contains_key(&turn_id)
+            || state.result_preview.jobs.contains_key(&turn_id)
+        {
             return Err(ConversationSubmitError::Conflict { turn_id });
         }
         if let Some(existing) = state.accepted_prompts.get(&turn_id) {
@@ -874,7 +1048,8 @@ impl ConversationHub {
         if state.primary_disconnected && profile_id.is_none() && !state.reconnecting() {
             return Err(ConversationSubmitError::PrimaryDisconnected);
         }
-        if state.verification_active() || state.reconnecting() {
+        if (state.verification_active() || state.result_preview.preparing()) || state.reconnecting()
+        {
             return Err(ConversationSubmitError::Busy {
                 turn_id: state
                     .latest_verification
@@ -1257,6 +1432,10 @@ impl ConversationState {
                 )
             }),
             project_plan: self.plans.snapshot(),
+            result_preview: self.result_preview.enabled.then(|| {
+                self.result_preview
+                    .snapshot(self.turns.back().map(|t| t.turn_id))
+            }),
             verification: self.verification_enabled.then(|| VerificationSnapshot {
                 active: self.verification_active(),
                 latest: self
@@ -1613,6 +1792,229 @@ mod tests {
             assert_eq!(receiver.try_recv().is_ok(), sent);
             assert!(receiver.try_recv().is_err());
         }
+    }
+
+    #[tokio::test]
+    async fn result_preview_is_confirmed_idempotent_and_never_restarted_by_replay() {
+        use crate::{
+            ResultPreviewBundle, ResultPreviewError as Error, ResultPreviewLease,
+            ResultPreviewRequest,
+        };
+        let (hub, mut receiver) = ConversationHub::new();
+        let turn = Uuid::new_v4();
+        let id = Uuid::new_v4();
+        let request = ResultPreviewRequest {
+            request_id: id,
+            turn_id: turn,
+            confirm_execution: true,
+        };
+        assert_eq!(
+            hub.submit_result_preview(request.clone()).unwrap_err(),
+            Error::Unavailable
+        );
+        hub.enable_result_preview();
+        assert_eq!(
+            hub.submit_result_preview(ResultPreviewRequest {
+                confirm_execution: false,
+                ..request.clone()
+            })
+            .unwrap_err(),
+            Error::Unconfirmed
+        );
+        assert_eq!(
+            hub.submit_result_preview(request.clone()).unwrap_err(),
+            Error::Stale
+        );
+        hub.submit_prompt(turn, "existing web project".into())
+            .unwrap();
+        receiver.try_recv().unwrap();
+        assert_eq!(
+            hub.submit_result_preview(request.clone()).unwrap_err(),
+            Error::Busy
+        );
+        hub.complete(turn).unwrap();
+        hub.submit_result_preview(request.clone()).unwrap();
+        hub.submit_result_preview(request.clone()).unwrap();
+        assert_eq!(
+            receiver.try_recv().unwrap(),
+            ConversationCommand::OpenResult { request_id: id }
+        );
+        assert!(receiver.try_recv().is_err());
+        assert_eq!(
+            hub.submit_result_preview(ResultPreviewRequest {
+                turn_id: Uuid::new_v4(),
+                ..request.clone()
+            })
+            .unwrap_err(),
+            Error::Conflict
+        );
+        assert!(
+            hub.submit_prompt(Uuid::new_v4(), "racing task".into())
+                .is_err()
+        );
+        hub.enable_verification();
+        assert_eq!(
+            hub.submit_verification(VerificationRequest {
+                request_id: Uuid::new_v4(),
+                turn_id: turn,
+                contract: VerificationContract::FrontendStatic,
+                confirm_execution: true
+            })
+            .unwrap_err(),
+            VerificationError::Busy
+        );
+        assert!(hub.begin_result_preview(id));
+        let bundle = ResultPreviewBundle::new(BTreeMap::from([(
+            "index.html".into(),
+            b"<h1>Snapshot</h1>".to_vec(),
+        )]))
+        .unwrap();
+        hub.finish_result_preview(id, Some(ResultPreviewLease::start(bundle).await.unwrap()));
+        let first = hub.snapshot().result_preview.unwrap().latest.unwrap();
+        assert_eq!(first.status, "ready");
+        assert!(first.url.is_some());
+        hub.submit_result_preview(request.clone()).unwrap();
+        assert!(receiver.try_recv().is_err());
+        let next = Uuid::new_v4();
+        hub.submit_prompt(next, "another task".into()).unwrap();
+        receiver.try_recv().unwrap();
+        assert!(
+            !hub.snapshot()
+                .result_preview
+                .unwrap()
+                .latest
+                .unwrap()
+                .current_task
+        );
+        hub.stop_result_preview(id).unwrap();
+        let stopped = hub
+            .submit_result_preview(request)
+            .unwrap()
+            .result_preview
+            .unwrap()
+            .latest
+            .unwrap();
+        assert_eq!(stopped.status, "stopped");
+        assert!(stopped.url.is_none());
+        assert!(receiver.try_recv().is_err());
+        assert!(hub.submit_prompt(id, "reuse preview ID".into()).is_err());
+        hub.complete(next).unwrap();
+        hub.submit_result_preview(ResultPreviewRequest {
+            request_id: Uuid::new_v4(),
+            turn_id: next,
+            confirm_execution: true,
+        })
+        .unwrap();
+        assert_eq!(
+            hub.submit_result_preview(ResultPreviewRequest {
+                request_id: id,
+                turn_id: turn,
+                confirm_execution: true
+            })
+            .unwrap_err(),
+            Error::Stale
+        );
+    }
+
+    #[test]
+    fn stale_host_start_cannot_leave_preview_permanently_queued() {
+        let (hub, mut receiver) = ConversationHub::new();
+        hub.enable_result_preview();
+        let turn = Uuid::new_v4();
+        hub.submit_prompt(turn, "seed".into()).unwrap();
+        receiver.try_recv().unwrap();
+        hub.complete(turn).unwrap();
+        let id = Uuid::new_v4();
+        hub.submit_result_preview(crate::ResultPreviewRequest {
+            request_id: id,
+            turn_id: turn,
+            confirm_execution: true,
+        })
+        .unwrap();
+        receiver.try_recv().unwrap();
+        // Defensive host corruption; ordinary admissions serialize this out.
+        hub.lock_state().turns.back_mut().unwrap().status = ConversationTurnStatus::Failed;
+        assert!(!hub.begin_result_preview(id));
+        let view = hub.snapshot().result_preview.unwrap();
+        assert!(!view.preparing);
+        assert_eq!(view.latest.unwrap().status, "unavailable");
+    }
+
+    #[test]
+    fn result_preview_and_new_task_admission_race_has_one_winner() {
+        for _ in 0..16 {
+            let (hub, mut receiver) = ConversationHub::new();
+            hub.enable_result_preview();
+            let turn = Uuid::new_v4();
+            hub.submit_prompt(turn, "seed".into()).unwrap();
+            receiver.try_recv().unwrap();
+            hub.complete(turn).unwrap();
+            let barrier = Arc::new(std::sync::Barrier::new(3));
+            let h = hub.clone();
+            let b = barrier.clone();
+            let open = std::thread::spawn(move || {
+                b.wait();
+                h.submit_result_preview(crate::ResultPreviewRequest {
+                    request_id: Uuid::new_v4(),
+                    turn_id: turn,
+                    confirm_execution: true,
+                })
+                .is_ok()
+            });
+            let h = hub.clone();
+            let b = barrier.clone();
+            let task = std::thread::spawn(move || {
+                b.wait();
+                h.submit_prompt(Uuid::new_v4(), "new task".into()).is_ok()
+            });
+            barrier.wait();
+            assert_ne!(open.join().unwrap(), task.join().unwrap());
+            receiver.try_recv().unwrap();
+            assert!(receiver.try_recv().is_err());
+        }
+    }
+
+    #[test]
+    fn queued_preview_stop_and_failed_capture_are_terminal_and_bounded() {
+        let (hub, mut receiver) = ConversationHub::new();
+        hub.enable_result_preview();
+        let turn = Uuid::new_v4();
+        hub.submit_prompt(turn, "seed".into()).unwrap();
+        receiver.try_recv().unwrap();
+        hub.complete(turn).unwrap();
+        let request = crate::ResultPreviewRequest {
+            request_id: Uuid::new_v4(),
+            turn_id: turn,
+            confirm_execution: true,
+        };
+        hub.submit_result_preview(request.clone()).unwrap();
+        receiver.try_recv().unwrap();
+        hub.stop_result_preview(request.request_id).unwrap();
+        assert!(!hub.begin_result_preview(request.request_id));
+        hub.submit_result_preview(request).unwrap();
+        assert!(receiver.try_recv().is_err());
+        for _ in 1..16 {
+            let id = Uuid::new_v4();
+            hub.submit_result_preview(crate::ResultPreviewRequest {
+                request_id: id,
+                turn_id: turn,
+                confirm_execution: true,
+            })
+            .unwrap();
+            receiver.try_recv().unwrap();
+            assert!(hub.begin_result_preview(id));
+            hub.finish_result_preview(id, None);
+        }
+        assert_eq!(
+            hub.submit_result_preview(crate::ResultPreviewRequest {
+                request_id: Uuid::new_v4(),
+                turn_id: turn,
+                confirm_execution: true
+            })
+            .unwrap_err(),
+            crate::ResultPreviewError::Limit
+        );
+        assert!(receiver.try_recv().is_err());
     }
 
     #[test]

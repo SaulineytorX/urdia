@@ -73,6 +73,14 @@
           <div><dt>Text updates</dt><dd id="metric-updates">0</dd></div>
           <div><dt>Response characters</dt><dd id="metric-chars">0</dd></div>
         </dl>
+          <section id="result-preview-panel" class="execution-profile result-preview-panel" hidden aria-label="Web result preview">
+            <p class="eyebrow">SEE WHAT YOU BUILT</p><h2>Open your web result</h2>
+            <p>For static websites with index.html and local assets. A captured version opens in a separate browser tab. Its private link expires after 15 minutes.</p>
+            <form id="result-preview-form"><label><input id="result-preview-consent" type="checkbox"> I trust this project's browser code and want to run it. This preview is not a security sandbox.</label><div class="conversation-actions"><button id="result-preview-start" type="submit" disabled>Prepare preview</button><a id="result-preview-open" class="primary result-preview-link" target="_blank" rel="noopener noreferrer" hidden>Open result ↗</a></div></form>
+            <p id="result-preview-status" role="status">Finish a task before opening its web result.</p><p id="result-preview-detail" class="muted"></p>
+            <div class="conversation-actions"><button id="result-preview-stop" type="button" class="cancel" hidden>Stop preview</button><button id="result-preview-retry" type="button" hidden>Retry same preview request</button><button id="result-preview-dismiss" type="button" hidden>Discard retry</button></div>
+            <p class="muted">This is a temporary captured version; later file changes are not shown. Each preview has separate browser storage: export work you want to keep. Previewing does not mean the task passed its checks.</p>
+          </section>
           <section id="verification-panel" class="execution-profile" hidden aria-label="Project checks">
             <p class="eyebrow">CHECK THE RESULT</p><h2>Check your project</h2>
             <details id="verification-review"><summary>Review checks and execution permission</summary>

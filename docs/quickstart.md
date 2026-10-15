@@ -187,3 +187,10 @@ For help, [report an issue](https://github.com/SaulineytorX/urdia/issues) with
 your OS/WSL version, Urdia commit (`git rev-parse --short HEAD`), agent version,
 failed step and sanitized error. Never include keys or the complete private
 browser URL. Use the [security policy](../SECURITY.md) for suspected vulnerabilities.
+
+## Open a web result
+
+After a completed task, use **Open your web result** in Conversation to prepare
+and open a trusted static project in a separate tab. Linux/WSL only; requires
+`index.html` at the workspace root. Nothing is installed or built. Review the
+[preview guide](result-preview.md) for consent, temporary storage and limits.
