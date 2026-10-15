@@ -34,3 +34,18 @@ are in-memory per page, not a persistent installation certificate. Reloading
 starts a fresh guide; conversation history still records the original turn.
 Saved setup applies after the single restart defined by ADR 0028. A WSL test
 with the owner's actual agents remains necessary before release.
+
+## 2026-10-14 — First checked-task continuation
+
+The guide now projects current host observations for project/agent/profile and
+latest checks. Agent response is not inferred from executable registration, nor
+from restored history or a mismatched original live configuration. Check evidence
+stays bound to the latest task and shows its actual contract; changing the next
+profile does not erase valid checks of already-produced files.
+
+An explicit empty-practice-project confirmation enables preparation of the
+existing two-file addition contract as an editable conversation draft. Existing
+drafts, selected agent and routing mode stay intact. Preparation clears existing
+check consent and starts no task or verification. Busy/pending/unknown-delivery
+conditions are rechecked on click. This is a continuation of the existing guide,
+not a new host authority or a persistent readiness certificate.

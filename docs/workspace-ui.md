@@ -556,3 +556,32 @@ be configured separately; no dependencies or model calls are started by the pane
 [Automatic Jev](automatic-jev.md) is selected in the task composer. It dispatches
 one visible submitted task through the existing host ticket/execution path, with
 exact model/effort application and no tool permission changes. Manual is default.
+
+## Your first checked task
+
+Open **Setup guide** to see the current project, agent response, configured
+profile and latest output-check status. These are host observations, not an
+installation or remote-model certificate. Registered agents have not necessarily
+responded successfully; a completed turn is separate from passing tests. Earlier
+checks cannot certify a newer task. Each passing result identifies its check scope.
+
+For a small first exercise, start Urdia with an **empty practice project** and a
+real coding agent. The guide does not inspect whether the folder is empty.
+Review the two-file Python addition task, confirm you are using that practice
+folder, and choose **Prepare first task**. This fills an editable draft in
+Conversation and selects the matching **Two-number addition** check contract.
+It preserves an existing draft, clears check consent, and changes neither your
+agent nor your routing mode. Review those choices and explicitly send the task.
+
+After the agent finishes, inspect calculator.py and test_calculator.py. Open
+**Check your project → Review checks and execution permission**, review the
+selected checks and authorize their execution. They run as your OS user and are
+not sandboxed. The guide then distinguishes agent completion from the current
+host check result; it does not claim every requirement or project is verified.
+
+The offline echo demo cannot create this exercise's files. Missing/disconnected
+hosts, pending saved settings, busy work, unresolved deliveries, pending
+permissions and active trusted access block this preparation. The existing five
+setup steps and separately consented arithmetic response test remain available.
+No credential collection, installation, task dispatch or checks happen merely
+by opening the guide or preparing a draft.

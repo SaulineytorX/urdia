@@ -142,6 +142,102 @@
       <section id="activity-view" hidden><div class="page-heading"><p class="eyebrow">OBSERVED EVENTS</p><h1>Activity history</h1><p>Earlier errors stay with their original session. An open session is not a failed task.</p></div><iframe id="timeline" title="Urdia event timeline" sandbox></iframe></section>
       <section id="setup-view" hidden aria-label="Setup guide">
         <div class="page-heading"><p class="eyebrow">FROM SETUP TO YOUR FIRST TASK</p><h1>Your workspace, ready to work.</h1><p>Follow five steps. Every connection, inspection and task starts only when you ask.</p></div>
+        <section id="first-run-overview" class="first-run-overview" aria-labelledby="first-run-heading">
+  <div class="first-run-header">
+    <div class="first-run-title-group">
+      <p class="first-run-eyebrow">FROM SETUP TO A CHECKED RESULT</p>
+      <h2 id="first-run-heading" class="first-run-title">Your first verified task</h2>
+      <p class="first-run-subtitle">
+        See what is connected, what still needs checking, and prepare a small practice task. The five setup steps below stay available.
+      </p>
+    </div>
+    <p id="first-run-status" class="first-run-status" role="status" data-state="waiting">Waiting for current host observations</p>
+  </div>
+
+  <div class="first-run-grid" role="list" aria-label="Readiness checks">
+    <article class="first-run-card" role="listitem" data-state="waiting">
+      <div class="first-run-card-top">
+        <span class="first-run-step-tag">01 · WORKSPACE</span>
+        <span id="first-run-project-status" class="first-run-card-status" data-state="waiting">Waiting for host</span>
+      </div>
+      <h3 class="first-run-card-title">Project folder</h3>
+      <p class="first-run-card-desc">
+        Shows the project attached to this host. Use an empty practice folder for the sample; this page does not check whether it is empty.
+      </p>
+    </article>
+
+    <article class="first-run-card" role="listitem" data-state="waiting">
+      <div class="first-run-card-top">
+        <span class="first-run-step-tag">02 · CONNECTION</span>
+        <span id="first-run-agent-status" class="first-run-card-status" data-state="waiting">Waiting for host</span>
+      </div>
+      <h3 class="first-run-card-title">Agent connection</h3>
+      <p class="first-run-card-desc">
+        Distinguishes a configured CLI executable on disk from an actual successful response. The built-in offline echo demo only mirrors input and cannot perform real coding work.
+      </p>
+    </article>
+
+    <article class="first-run-card" role="listitem" data-state="waiting">
+      <div class="first-run-card-top">
+        <span class="first-run-step-tag">03 · INFERENCE</span>
+        <span id="first-run-profile-status" class="first-run-card-status" data-state="waiting">Waiting for host</span>
+      </div>
+      <h3 class="first-run-card-title">Model &amp; profile</h3>
+      <p class="first-run-card-desc">
+        Shows configured profiles. Model reports and labels do not independently verify which remote model runs.
+      </p>
+    </article>
+
+    <article class="first-run-card" role="listitem" data-state="waiting">
+      <div class="first-run-card-top">
+        <span class="first-run-step-tag">04 · VERIFICATION</span>
+        <span id="first-run-check-status" class="first-run-card-status" data-state="waiting">Waiting for host</span>
+      </div>
+      <h3 class="first-run-card-title">Output checks</h3>
+      <p class="first-run-card-desc">
+        Distinguishes an agent claiming task completion from independently checked output. Run <strong>Check your project</strong> manually to validate the reviewed two-number addition contract.
+      </p>
+    </article>
+  </div>
+
+  <div class="first-task-panel">
+    <div class="first-task-header">
+      <div class="first-task-copy">
+        <p class="first-task-eyebrow">OPTIONAL HANDS-ON PRACTICE</p>
+        <h3 class="first-task-title">Prepare a first real coding task</h3>
+        <p class="first-task-description">
+          Practice with a two-file Python addition task in an <strong>empty project</strong>. Preparing it opens an editable draft in Conversation. Review your agent and routing choice, then send the task yourself. After the agent finishes, inspect its files and explicitly run the checks. The offline demo cannot do this coding work.
+        </p>
+      </div>
+    </div>
+
+    <details class="first-task-details">
+      <summary class="first-task-summary">Review the sample task</summary>
+      <div class="first-task-prompt-wrap">
+        <p class="first-task-contract-hint">
+          Reviewed two-file Python addition contract. After the agent finishes in Conversation, use the existing <strong>Check your project</strong> control to verify the output independently.
+        </p>
+        <pre id="first-task-prompt" class="first-task-prompt">Loading reviewed task…</pre>
+      </div>
+    </details>
+
+    <div class="first-task-controls">
+      <label class="first-task-confirm-label" for="first-task-confirm">
+        <input id="first-task-confirm" class="first-task-checkbox" type="checkbox">
+        <span class="first-task-confirm-text">I am using an empty practice project and want to prepare this sample.</span>
+      </label>
+
+      <div class="first-task-actions">
+        <button id="first-task-prepare" class="first-task-btn first-task-btn-primary" type="button" disabled>Prepare first task</button>
+        <button class="first-task-btn first-task-btn-secondary" type="button" data-view="workspace">Open conversation</button>
+        <button class="first-task-btn first-task-btn-ghost" type="button" data-view="settings">Configure engines</button>
+      </div>
+    </div>
+
+    <p id="first-task-note" class="first-task-note" role="status" data-state="waiting">No task prepared. Review and send it yourself in Conversation.</p>
+  </div>
+</section>
+
         <nav class="setup-steps" aria-label="Setup steps">
           <button type="button" data-setup-step="0">01 · Project</button><button type="button" data-setup-step="1">02 · Agents</button><button type="button" data-setup-step="2">03 · Models &amp; effort</button><button type="button" data-setup-step="3">04 · Decision engine</button><button type="button" data-setup-step="4">05 · Try it</button>
         </nav>

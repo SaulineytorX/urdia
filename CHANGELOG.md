@@ -8,6 +8,10 @@ public releases begin.
 
 ## [Unreleased]
 
+- Add a first-task setup overview with observed project/agent/profile/check states,
+  inert two-file practice-task preparation, existing-draft preservation, renewed
+  check consent and explicit check scope.
+
 - Separate Jev coding-profile suitability preference from generic routing, with
   explicit host mode and unchanged typed validation and permission checks.
 

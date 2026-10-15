@@ -1848,6 +1848,32 @@
     }
   });
 
+  // BEGIN first-run observations: pure projection, never execution authority.
+  function firstRunObservations(snapshot, available, pendingSettings) {
+    const selected = snapshot.profile_selection?.selected_profile;
+    const context = snapshot.profile_selection?.choices?.[selected] || snapshot.context;
+    const row = (state, text) => ({state, text});
+    const rows = {project:row("waiting", "Waiting for host"), agent:row("waiting", "Waiting for host"), profile:row("waiting", "Waiting for host"), check:row("waiting", "No checks yet")};
+    if (!available || !context) return {rows, demo:false, canPrepare:false, summary:"Waiting for current host observations. No task can be prepared yet."};
+    rows.project = row("ready", `Attached: ${context.workspace_name}`);
+    const demo = context.provider_id === "preview-demo" || /offline.*not ai/i.test(context.provider_name);
+    const latest = snapshot.turns?.at(-1);
+    const sameAgent = latest && (latest.execution ? latest.execution.provider_id === context.provider_id && latest.execution.profile?.id === context.profile?.id : latest.original_session === true && snapshot.live_controls?.explicit_configuration_matches !== false && context.provider_id === snapshot.context?.provider_id && context.profile?.id === snapshot.context?.profile?.id);
+    rows.agent = demo ? row("demo", "Offline demo · not AI; no coding edits") : sameAgent && latest.status === "completed" ? row("ready", `${context.provider_name} responded · inspect its output`) : sameAgent && latest.status === "failed" ? row("failed", "Agent task failed · review the error in Conversation") : row("attention", `${context.provider_name} configured · response not confirmed`);
+    rows.profile = snapshot.live_controls?.explicit_configuration_matches === false && !selected ? row("attention", "Model configuration changed · inspect or select a profile") : context.profile ? row("ready", `Configured: ${context.profile.name} · not remote-model proof`) : row("waiting", context.startup_controls?.model ? `Agent reports: ${context.startup_controls.model} · profile optional for manual work` : "Manual agent configuration · inspect controls; a profile is optional");
+    const job = snapshot.verification?.latest;
+    const checkLabel = ({"calculator-add-v1":"Two-number addition", "calculator-five-v1":"Five-number arithmetic", "python-unittest-v1":"Project unittest", "frontend-static-v1":"Static frontend", "frontend-counter-v1":"Web counter"})[job?.contract] || "Review check scope";
+    if (job && (job.stale || job.turn_id !== latest?.turn_id)) rows.check = row("attention", "Earlier checks · not evidence for the latest task");
+    else if (job?.status === "passed" && latest?.status === "completed" && job.report?.status === "passed" && job.report.acceptance_files_unchanged === true) rows.check = row("passed", `Checks passed for the latest task · ${checkLabel}`);
+    else if (job?.status === "failed") rows.check = row("failed", "Checks failed · review details before accepting the result");
+    else if (job) rows.check = row("attention", `Checks ${job.status} · no accepted result yet`);
+    else if (latest?.status === "completed") rows.check = row("attention", "Agent finished · independent checks have not run");
+    if (pendingSettings) rows.profile = row("attention", "Saved settings pending · apply them before a new task");
+    const verified = rows.check.state === "passed";
+    return {rows, demo, canPrepare:!demo && !pendingSettings && !(snapshot.live_controls?.explicit_configuration_matches === false && !selected), summary:demo ? "Explore the interface here. Start Urdia with a real coding agent to edit and check a project." : pendingSettings ? "Finish setup and apply pending settings. Nothing starts automatically." : verified ? "The latest task has passing host checks. Review the files and check scope before accepting it." : "Prepare a small task, review the agent and routing choice, send it explicitly, then run separate checks."};
+  }
+  // END first-run observations.
+
   // Reuse the existing authenticated forms, keeping their drafts and handlers intact.
   const setupPanels = ["agent-catalog", "profile-catalog", "recommendation-panel", "decision-engine-panels"].map((id) => {
     const node = document.getElementById(id);
@@ -1859,7 +1885,7 @@
     ["Project", "Start with this project.", "This host is already bound to the project shown below. To use another folder, start Urdia with that workspace; this guide does not change filesystem access."],
     ["Agents", "Bring your installed agents.", "Register an installed agent you trust. Saving does not install it, authenticate it or start a task. Read-only catalogs need the private agent store enabled at startup."],
     ["Models & effort", "Choose a precise execution profile.", "Inspect an agent only after confirming its temporary connection. Choose its reported model, inspect again for matching effort options, then save. Availability alone does not prove authentication."],
-    ["Decision engine", "Choose how to get advice.", "Manual selection works without a decision API. Connect an installed Laya service here, or use the Jev host-key instructions below. Recommendations never grant permissions or automatically start tasks."],
+    ["Decision engine", "Choose how to get advice.", "Manual selection works without a decision API. Connect an installed Laya service here, or connect your own Jev key in this panel. Advice never grants permissions; experimental Jev task dispatch requires a separate opt-in in Conversation."],
     ["Try it", "See your agent respond.", "Test the currently active agent, then inspect the actual response and host-measured time. A correct arithmetic response is a smoke check, not proof of general coding quality."]
   ];
   let setupReady = false;
@@ -1873,7 +1899,49 @@
   const setupBlocked = () => stopped || !setupReady || !conversationAvailable || !latestConversationSnapshot.context ||
     Boolean(agentSnapshot?.restart_required || catalogSnapshot?.restart_required || latestConversationSnapshot.active_turn_id || conversationSubmitting ||
     latestTrustedSnapshot?.status === "active" || (latestConversationSnapshot.live_controls?.explicit_configuration_matches === false && !latestConversationSnapshot.profile_selection?.selected_profile));
+  const firstTaskConfirm = document.getElementById("first-task-confirm");
+  const firstTaskPrepare = document.getElementById("first-task-prepare");
+  let firstTaskNotice = "No task prepared. Review and send it yourself in Conversation.";
+  const firstTaskBusy = () => setupBlocked() || setupSubmitting || selectingProfile || Boolean(
+    latestConversationSnapshot.verification?.active || automaticRoute || automaticInFlight ||
+    pendingPrompt || pendingVerification || verificationSending || latestPermissionSnapshot.pending.length ||
+    (setupTurnId && !latestConversationSnapshot.turns.some((turn) => turn.turn_id === setupTurnId))
+  );
+  const renderFirstRun = () => {
+    const observations = firstRunObservations(latestConversationSnapshot, setupReady && conversationAvailable && !stopped,
+      Boolean(agentSnapshot?.restart_required || catalogSnapshot?.restart_required));
+    for (const [id, entry] of Object.entries(observations.rows)) {
+      const node = document.getElementById(`first-run-${id}-status`);
+      node.textContent = entry.text;
+      node.dataset.state = entry.state;
+      node.closest(".first-run-card").dataset.state = entry.state;
+    }
+    document.getElementById("first-run-status").textContent = observations.summary;
+    document.getElementById("first-task-prompt").textContent = verificationContracts["calculator-add-v1"].task;
+    firstTaskPrepare.disabled = !observations.canPrepare || firstTaskBusy() || !firstTaskConfirm.checked || Boolean(conversationInput.value.trim());
+    document.getElementById("first-task-note").textContent = observations.demo ?
+      "Offline demo cannot create these files. Relaunch with a real agent; no coding task was sent." : firstTaskNotice.startsWith("Sample prepared") && conversationInput.value === verificationContracts["calculator-add-v1"].task ? firstTaskNotice : conversationInput.value.trim() ?
+      "Your current draft is kept. Send or clear it in Conversation before preparing this sample." : firstTaskBusy() ?
+      setupTurnId && !latestConversationSnapshot.turns.some((turn) => turn.turn_id === setupTurnId) ? "The earlier agent test is unresolved. Open Try it and retry that same delivery before preparing a new task." : "Preparation is unavailable while disconnected, busy, waiting for permissions, or applying configuration. Nothing was sent." : firstTaskNotice;
+  };
+  firstTaskConfirm.addEventListener("change", renderFirstRun);
+  conversationInput.addEventListener("input", renderFirstRun);
+  firstTaskPrepare.addEventListener("click", () => {
+    // Refresh every guard on click; a displayed enabled button is not authority.
+    renderFirstRun();
+    if (firstTaskPrepare.disabled) return;
+    verificationContract.value = "calculator-add-v1";
+    verificationContract.dispatchEvent(new Event("change"));
+    conversationInput.value = verificationContracts["calculator-add-v1"].task;
+    conversationInput.dispatchEvent(new Event("input", {bubbles:true}));
+    firstTaskConfirm.checked = false;
+    firstTaskNotice = "Sample prepared only. Review the agent and routing choice, then press Send task. After completion, review files and explicitly run Two-number addition checks.";
+    selectView("workspace");
+    conversationInput.focus();
+    renderFirstRun();
+  });
   const renderSetup = () => {
+    renderFirstRun();
     const context = latestConversationSnapshot.profile_selection?.choices[latestConversationSnapshot.profile_selection.selected_profile] || latestConversationSnapshot.context;
     document.getElementById("setup-context").textContent = context ?
       `Active project: ${context.workspace_name} · Agent: ${context.provider_name} · Profile: ${context.profile?.name || "manual selection"}` : "Waiting for an active conversation host.";

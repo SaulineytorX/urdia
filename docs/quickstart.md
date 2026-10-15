@@ -94,7 +94,11 @@ Manual selection is the default. No Jev key is required for this first task.
 
 ## 5. Complete and check a small task
 
-Use the empty preview project for this exercise. Send this task:
+Use the empty preview project for this exercise. In **Setup guide → Your first
+verified task**, review the sample, confirm the empty practice project and click
+**Prepare first task**. This opens an editable draft in Conversation without
+sending it. Review your chosen agent/routing and send it explicitly. You can also
+paste the same task below:
 
 ```text
 Create calculator.py with an add(a, b) function.
