@@ -8,6 +8,9 @@ public releases begin.
 
 ## [Unreleased]
 
+- Include the unmodified Launchboard app from an actual Jev-selected Codex-medium
+  task, independent browser acceptance and explicit single-run evidence limits.
+
 - Add fixed interval/dependency routing examples, deterministic protected checks
   and a bounded repeated Manual/Jev sample with explicit limits.
 

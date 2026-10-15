@@ -53,6 +53,8 @@ Try [repairing an existing project](examples/repair-name/README.md).
 [The paired pilot](docs/repair-pilot.md) records verified results and limits.
 [The varied routing sample](docs/routing-sample.md) adds fixed interval and
 dependency tasks, alternating order and repeated observations.
+Try [Launchboard](https://urdia.tech/examples/launchboard/), a real Jev-selected
+[three-file app with independent browser checks](examples/launchboard/README.md).
 
 ## Learn and contribute
 

@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#0b0e14">
+  <title>Launchboard — Workspace</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="Project navigation">
+      <a class="brand" href="#main"><span class="u-mark" aria-hidden="true">U</span><span>Launchboard<span class="brand-dot">.</span></span></a>
+      <div class="workspace-label">WORKSPACE <span>01</span></div>
+      <div class="project-link"><span class="project-symbol" aria-hidden="true">↗</span><span>Product launch<small>Personal workspace</small></span><span class="live-dot" aria-label="Active project"></span></div>
+      <div class="rail-heading">PROJECT</div>
+      <a class="nav-link active" href="#board"><span aria-hidden="true">▦</span> Project board <span class="nav-count" id="rail-count">6</span></a>
+      <div class="sidebar-note"><span class="note-orbit" aria-hidden="true">✧</span><strong>Big ideas. Small steps.</strong><p>A little momentum goes a long way. Make your next move.</p><span class="note-line"></span></div>
+      <div class="sidebar-bottom"><span class="local-indicator"></span> Local workspace<span class="local-detail">Your browser. Your board.</span><span class="credit">Built with <strong>Urdia</strong> <span aria-hidden="true">↗</span></span></div>
+    </aside>
+    <main id="main">
+      <div class="topbar"><div class="breadcrumb">Workspace <span>/</span> <strong>Product launch</strong></div><span class="private-badge"><span aria-hidden="true">◇</span> Browser local</span></div>
+      <header class="project-header">
+        <div class="eyebrow"><span></span> FROM FIRST IDEA TO LIFTOFF</div>
+        <div class="title-row"><div><h1>Build something<br class="mobile-break"> worth launching<span>.</span></h1><p>Your next big thing, one clear step at a time.</p></div><button class="primary-button" id="new-task" type="button"><span aria-hidden="true">＋</span> New task</button></div>
+        <div class="project-meta"><span class="project-tag"><span aria-hidden="true">↗</span> Product launch</span><span class="meta-separator"></span><span>Launch plan <span class="version">v1.0</span></span><span class="meta-separator"></span><span class="active-status"><i></i> In motion</span></div>
+      </header>
+      <section class="metrics" aria-label="Project progress">
+        <div class="metric"><span class="metric-label">Total tasks <span aria-hidden="true">▦</span></span><div><strong id="total-count">6</strong><span class="metric-caption">on the launch plan</span></div></div>
+        <div class="metric"><span class="metric-label">Completed <span class="mint" aria-hidden="true">✓</span></span><div><strong id="done-count">1</strong><span class="metric-caption">steps closer to launch</span></div></div>
+        <div class="metric progress-metric"><span class="metric-label">Launch progress <span class="mint" id="completion-rate">17%</span></span><div class="progress-track" role="progressbar" aria-label="Tasks completed" aria-valuemin="0" aria-valuemax="100" aria-valuenow="17" id="completion-progress"><div id="progress-fill"></div></div><span class="progress-caption" id="progress-caption">A strong start. Keep the momentum.</span></div>
+      </section>
+      <div class="board-toolbar"><div class="board-label"><h2>Project board</h2><span class="board-view">BOARD VIEW</span></div><div class="filters"><label class="search-box" for="search"><span aria-hidden="true">⌕</span><input id="search" type="search" placeholder="Search tasks…" autocomplete="off" aria-label="Search tasks"></label><label class="priority-control"><span class="sr-only">Filter by priority</span><select id="priority-filter"><option value="all">All priorities</option><option value="high">High priority</option><option value="medium">Medium priority</option><option value="low">Low priority</option></select></label></div></div>
+      <p id="saving-warning" class="saving-warning" role="status" hidden></p>
+      <div id="board" class="board">
+        <section class="lane" data-lane="backlog" aria-labelledby="backlog-heading"><div class="lane-heading"><h3 id="backlog-heading"><span class="lane-dot backlog-dot"></span>Backlog <span class="lane-count">3</span></h3><span class="lane-symbol" aria-hidden="true">···</span></div><p class="lane-caption">Good ideas start here.</p><div class="task-list"></div></section>
+        <section class="lane" data-lane="progress" aria-labelledby="progress-heading"><div class="lane-heading"><h3 id="progress-heading"><span class="lane-dot progress-dot"></span>In progress <span class="lane-count">2</span></h3><span class="lane-symbol" aria-hidden="true">···</span></div><p class="lane-caption">A little focus. A lot of possibility.</p><div class="task-list"></div></section>
+        <section class="lane" data-lane="done" aria-labelledby="done-heading"><div class="lane-heading"><h3 id="done-heading"><span class="lane-dot done-dot"></span>Done <span class="lane-count">1</span></h3><span class="lane-symbol" aria-hidden="true">···</span></div><p class="lane-caption">Progress you can feel good about.</p><div class="task-list"></div></section>
+      </div>
+      <footer class="board-footer"><span><span class="local-indicator"></span><span id="save-status">Changes saved on this device</span></span><div><button id="export-board" type="button"><span aria-hidden="true">↓</span> Export board</button><span class="footer-divider"></span><button id="reset-board" type="button">Reset board</button></div></footer>
+    </main>
+  </div>
+  <dialog id="task-dialog" aria-labelledby="dialog-title" aria-describedby="dialog-description"><form id="task-form" novalidate><div class="dialog-eyebrow">MAKE YOUR NEXT MOVE</div><h2 id="dialog-title">A new step forward.</h2><p id="dialog-description">Add a task to your launch backlog.</p><label for="task-title">Task title <span>*</span></label><input id="task-title" name="title" required maxlength="80" placeholder="What needs to happen?" aria-describedby="title-error" autocomplete="off"><p id="title-error" class="field-error" role="alert" hidden></p><label for="task-description">Description <span class="optional">Optional</span></label><textarea id="task-description" name="description" maxlength="280" rows="4" placeholder="A few details to guide the way…"></textarea><label for="task-priority">Priority</label><select id="task-priority" name="priority"><option value="medium">Medium priority</option><option value="high">High priority</option><option value="low">Low priority</option></select><p id="form-error" class="field-error" role="alert" hidden></p><div class="dialog-actions"><button id="cancel-task" class="secondary-button" type="button">Cancel</button><button id="save-task" class="primary-button" type="submit">Create task <span aria-hidden="true">↗</span></button></div></form></dialog>
+  <div id="announcements" class="sr-only" role="status" aria-live="polite"></div>
+</body>
+</html>

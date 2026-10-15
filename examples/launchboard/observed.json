@@ -1,0 +1,124 @@
+{
+  "schema": "urdia.launchboard-observed/v1",
+  "local_date": "2026-10-14",
+  "time_zone": "America/Mexico_City",
+  "tested_public_source_equivalent": "3c211a8",
+  "task_sha256": "633c2335dbdddd658385e3adb206d858cf2bade8a9a5bc2fc7200aca7a0094f1",
+  "eligible_profiles": [
+    "codex-low",
+    "codex-medium"
+  ],
+  "default_profile": "codex-low",
+  "selected_profile": "codex-medium",
+  "requested_model": "gpt-6.1-sol",
+  "requested_effort": "medium",
+  "remote_model_independently_verified": false,
+  "connection_tests": 1,
+  "routing_jobs": 1,
+  "coding_tasks": 1,
+  "automatic_retries": false,
+  "operator_source_edits": 0,
+  "agent_status": "completed",
+  "decision_elapsed_ms": 76,
+  "submit_to_terminal_ms": 166699,
+  "permission_handling_ms": 1026,
+  "edit_approvals": 1,
+  "guard_rejections": 0,
+  "host_metrics": {
+    "elapsed_ms": 166187,
+    "execution_ms": 166187,
+    "first_text_ms": 2943,
+    "text_updates": 60,
+    "response_chars": 300
+  },
+  "source_sha256": {
+    "styles.css": "df3b639bd414e0bc3fa5aacdee82b45e0df33cbf34cda00f689977b3eb63b6a7",
+    "app.js": "b7b2bcb83ef431bb3e944d87b8f36a79d31458065cd59f03461ea68df7a0502f",
+    "index.html": "3a049387e3c195971e892a2348cc825aa063c575c463f236213555030afa443c"
+  },
+  "browser_checks": {
+    "schema": "urdia.launchboard-checks/v1",
+    "checks": [
+      {
+        "check": "seed_and_global_metrics",
+        "passed": true
+      },
+      {
+        "check": "combined_filters_preserve_global_metrics",
+        "passed": true
+      },
+      {
+        "check": "filtered_mutation_preserves_hidden_tasks",
+        "passed": true
+      },
+      {
+        "check": "move_forward_back_and_reload_persistence",
+        "passed": true
+      },
+      {
+        "check": "keyboard_move_retains_usable_focus",
+        "passed": true
+      },
+      {
+        "check": "cancel_escape_and_clean_dialog",
+        "passed": true
+      },
+      {
+        "check": "validation_safe_text_create_focus_and_reload",
+        "passed": true
+      },
+      {
+        "check": "json_export_contains_actual_tasks",
+        "passed": true
+      },
+      {
+        "check": "delete_updates_actual_counts",
+        "passed": true
+      },
+      {
+        "check": "reset_cancel_confirm_and_filters",
+        "passed": true
+      },
+      {
+        "check": "mobile_390_and_320_no_overflow_usable_dialog",
+        "passed": true
+      },
+      {
+        "check": "empty_saved_board_is_not_reseeded",
+        "passed": true
+      },
+      {
+        "check": "malformed_storage_recovers_safely",
+        "passed": true
+      },
+      {
+        "check": "unavailable_storage_does_not_break_board",
+        "passed": true
+      },
+      {
+        "check": "no_external_requests_or_uncaught_errors",
+        "passed": true
+      }
+    ],
+    "passed": true,
+    "source_sha256": {
+      "index.html": "3a049387e3c195971e892a2348cc825aa063c575c463f236213555030afa443c",
+      "styles.css": "df3b639bd414e0bc3fa5aacdee82b45e0df33cbf34cda00f689977b3eb63b6a7",
+      "app.js": "b7b2bcb83ef431bb3e944d87b8f36a79d31458065cd59f03461ea68df7a0502f"
+    },
+    "source_unchanged": true,
+    "external_requests": 0,
+    "uncaught_errors": 0
+  },
+  "tokens": null,
+  "cost": null,
+  "qwen_readiness": "not_in_catalog_bounded_launch_reported_no_auth_type_selected_no_inference_attempt",
+  "recording": {
+    "capture_duration_seconds": 163.76,
+    "capture_complete": false,
+    "limitation": "Capture ends shortly before the final edit/turn completion; completed host status and independent checks are separate evidence.",
+    "container_remuxed_without_reencoding_or_timeline_edits": true,
+    "raw_sha256": "731edc4ff6f611b9ad9ec6d63e7d4ecb0a4e6013243282066311c1738d7dcb74",
+    "served_sha256": "e35fc24c698452146964412e1900dbf4a116a90a077a03ec37a0342eaa7a179f"
+  }
+}
