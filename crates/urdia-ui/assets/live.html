@@ -66,14 +66,48 @@
             <p>Review the proposed steps before using them. This opens a preview; nothing runs.</p>
             <div class="conversation-actions"><button id="plan-result-review" type="button" class="primary">Review returned plan</button></div>
           </section>
-          <dl id="task-metrics" class="task-metrics" aria-label="Host-measured task metrics" hidden>
-          <div><dt>Total elapsed</dt><dd id="metric-elapsed">—</dd></div>
-          <div><dt>Execution</dt><dd id="metric-execution">—</dd></div>
-          <div><dt>First text</dt><dd id="metric-first-text">—</dd></div>
-          <div><dt>Text updates</dt><dd id="metric-updates">0</dd></div>
-          <div><dt>Response characters</dt><dd id="metric-chars">0</dd></div>
-        </dl>
-          <section id="result-preview-panel" class="execution-profile result-preview-panel" hidden aria-label="Web result preview">
+          <div class="transcript" id="transcript"><div id="conversation-history" class="conversation-history"></div><div id="conversation-empty" class="empty-conversation"><div class="portal-orbit" aria-hidden="true"><img class="empty-mark" src="/brand.svg" width="76" height="76" alt=""></div><p class="eyebrow">YOUR NEXT MOVE</p><h2>What are we building?</h2><p>Ask for a change, a fix, or a fresh idea.<br>Your agent will work in the selected project.</p><div class="suggestions"><button type="button" data-prompt="Review this project and explain its architecture. Do not modify files.">Understand my project ↗</button><button type="button" data-prompt="Investigate a failing test, propose the smallest fix, and verify it. Ask before destructive actions.">Fix a failing test ↗</button></div></div></div>
+<section id="task-outcome" class="task-outcome" hidden aria-labelledby="outcome-title">
+  <div class="task-outcome-card">
+    <header class="task-outcome-header">
+      <div class="task-outcome-heading-group">
+        <span class="task-outcome-kicker">Task outcome</span>
+        <h2 id="outcome-title" class="task-outcome-title">Task finished</h2>
+        <p id="outcome-description" class="task-outcome-description">Review the agent response above, then open a preview, run checks, or ask for a change.</p>
+      </div>
+      <div class="task-outcome-badges" role="group" aria-label="Current task and check status">
+        <div class="task-outcome-badge-item">
+          <span class="task-outcome-badge-label">Agent</span>
+          <span id="outcome-agent-state" class="task-outcome-chip" data-tone="neutral">Idle</span>
+        </div>
+        <div class="task-outcome-badge-item">
+          <span class="task-outcome-badge-label">Checks</span>
+          <span id="outcome-check-state" class="task-outcome-chip" data-tone="neutral">No checks run</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="task-outcome-actions" role="group" aria-label="Next step actions">
+      <button type="button" id="outcome-preview" class="task-outcome-btn task-outcome-btn-primary" hidden>
+        <span class="task-outcome-btn-dot" aria-hidden="true"></span>
+        <span id="outcome-preview-label">Web preview</span>
+      </button>
+      <button type="button" id="outcome-check" class="task-outcome-btn task-outcome-btn-secondary" hidden>
+        <span id="outcome-check-label">Run checks</span>
+      </button>
+      <button type="button" id="outcome-change" class="task-outcome-btn task-outcome-btn-ghost">
+        <span>Request a change</span>
+      </button>
+    </div>
+
+    <div class="task-outcome-drawers">
+      <details id="outcome-preview-details" class="task-outcome-details" hidden>
+        <summary class="task-outcome-summary">
+          <span class="task-outcome-summary-title">Web preview</span>
+          <span id="outcome-preview-meta" class="task-outcome-summary-meta">Temporary private-origin capture</span>
+        </summary>
+        <div class="task-outcome-details-body">
+                    <section id="result-preview-panel" class="execution-profile result-preview-panel" hidden aria-label="Web result preview">
             <p class="eyebrow">SEE WHAT YOU BUILT</p><h2>Open your web result</h2>
             <p>For static websites with index.html and local assets. A captured version opens in a separate browser tab. Its private link expires after 15 minutes.</p>
             <form id="result-preview-form"><label><input id="result-preview-consent" type="checkbox"> I trust this project's browser code and want to run it. This preview is not a security sandbox.</label><div class="conversation-actions"><button id="result-preview-start" type="submit" disabled>Prepare preview</button><a id="result-preview-open" class="primary result-preview-link" target="_blank" rel="noopener noreferrer" hidden>Open result ↗</a></div></form>
@@ -81,7 +115,17 @@
             <div class="conversation-actions"><button id="result-preview-stop" type="button" class="cancel" hidden>Stop preview</button><button id="result-preview-retry" type="button" hidden>Retry same preview request</button><button id="result-preview-dismiss" type="button" hidden>Discard retry</button></div>
             <p class="muted">This is a temporary captured version; later file changes are not shown. Each preview has separate browser storage: export work you want to keep. Previewing does not mean the task passed its checks.</p>
           </section>
-          <section id="verification-panel" class="execution-profile" hidden aria-label="Project checks">
+
+        </div>
+      </details>
+
+      <details id="outcome-check-details" class="task-outcome-details" hidden>
+        <summary class="task-outcome-summary">
+          <span class="task-outcome-summary-title">Check details</span>
+          <span id="outcome-check-meta" class="task-outcome-summary-meta">Explicit check controls</span>
+        </summary>
+        <div class="task-outcome-details-body">
+                    <section id="verification-panel" class="execution-profile" hidden aria-label="Project checks">
             <p class="eyebrow">CHECK THE RESULT</p><h2>Check your project</h2>
             <details id="verification-review"><summary>Review checks and execution permission</summary>
             <label for="verification-contract">What do you want to check?</label><select id="verification-contract"><option value="calculator-add-v1">Two-number addition · 3 examples</option><option value="calculator-five-v1">Five-number arithmetic · 12 test groups</option><option value="python-unittest-v1">My Python project · existing unittest tests</option><option value="frontend-static-v1">Static frontend · desktop/mobile smoke</option><option value="frontend-counter-v1">Web counter · behavior and keyboard</option></select>
@@ -93,17 +137,39 @@
             <p id="verification-status" role="status">Finish a task before checking its result.</p><p id="verification-note" role="status"></p><div id="verification-results"></div>
             <p class="muted">No AI call. A result is evidence for these checks, separate from agent completion.</p>
           </section>
+
+        </div>
+      </details>
+
+      <details id="outcome-technical" class="task-outcome-details">
+        <summary class="task-outcome-summary">
+          <span class="task-outcome-summary-title">Time, model and technical details</span>
+          <span class="task-outcome-summary-meta">Technical details</span>
+        </summary>
+        <div class="task-outcome-details-body task-outcome-technical-grid">
+                    <dl id="task-metrics" class="task-metrics" aria-label="Host-measured task metrics" hidden>
+          <div><dt>Total elapsed</dt><dd id="metric-elapsed">—</dd></div>
+          <div><dt>Execution</dt><dd id="metric-execution">—</dd></div>
+          <div><dt>First text</dt><dd id="metric-first-text">—</dd></div>
+          <div><dt>Text updates</dt><dd id="metric-updates">0</dd></div>
+          <div><dt>Response characters</dt><dd id="metric-chars">0</dd></div>
+        </dl>
           <p id="startup-controls" class="muted" hidden></p>
           <section id="execution-profile" class="execution-profile" hidden aria-label="Current execution profile">
             <div class="profile-heading"><div><p class="eyebrow">CONFIGURED EXECUTION PROFILE</p><h2 id="profile-name"></h2></div><span id="profile-selection" class="profile-selection"></span></div>
             <dl class="profile-details"><div><dt>Agent</dt><dd id="profile-agent"></dd></div><div><dt>Inference provider</dt><dd id="profile-provider"></dd></div><div><dt>Model</dt><dd id="profile-model"></dd></div><div><dt>Effort</dt><dd id="profile-effort"></dd></div></dl>
             <p id="profile-note" class="profile-note">Configured labels · model and effort have not been verified. This profile stays selected for this session.</p>
           </section>
-          <div class="transcript" id="transcript"><div id="conversation-history" class="conversation-history"></div><div id="conversation-empty" class="empty-conversation"><div class="portal-orbit" aria-hidden="true"><img class="empty-mark" src="/brand.svg" width="76" height="76" alt=""></div><p class="eyebrow">YOUR NEXT MOVE</p><h2>What are we building?</h2><p>Ask for a change, a fix, or a fresh idea.<br>Your agent will work in the selected project.</p><div class="suggestions"><button type="button" data-prompt="Review this project and explain its architecture. Do not modify files.">Understand my project ↗</button><button type="button" data-prompt="Investigate a failing test, propose the smallest fix, and verify it. Ask before destructive actions.">Fix a failing test ↗</button></div></div></div>
+
+        </div>
+      </details>
+    </div>
+  </div>
+</section>
           <form id="conversation-form"><label for="task-routing-mode">Who chooses the agent?</label><select id="task-routing-mode"><option value="manual">I choose · send directly</option><option value="jev" disabled>Jev chooses and runs · experimental</option></select><p id="automatic-routing-note" class="composer-note">Connect Jev and configure executable model/effort profiles to use automatic selection.</p><p id="automatic-routing-status" role="status"></p><button id="automatic-routing-retry" type="button" hidden>Retry same delivery</button><button id="automatic-routing-stop" type="button" hidden>Stop routing</button><label for="conversation-input">Your next task</label><textarea id="conversation-input" name="text" rows="3" maxlength="16384" placeholder="Describe what you want to build or change…" required></textarea><div class="conversation-actions"><span id="conversation-help">One active task at a time.</span><button id="conversation-cancel" class="cancel" type="button" hidden>Stop task</button><button id="conversation-submit" class="primary" type="submit">Send task ↗</button></div><p class="composer-note">Conversation text stays in memory. Agent processes can manage their own records.</p></form>
         </section>
         <div id="no-conversation" hidden><h1>History viewer</h1><p>This process has no conversation. Open Activity history, or start <code>urdia chat</code>.</p></div>
-        <div class="control-rail"><section class="task-overview" aria-label="Current task status"><p class="eyebrow">LIVE TASK</p><h2 id="task-title">Ready when you are</h2><p id="task-detail">A completed task and an open session are different states.</p><p id="metric-activity" class="muted" hidden></p><section id="agent-reconnection" hidden aria-live="polite"><h3>Recover your agent</h3><p id="reconnection-detail">Reconnect the original project agent with its loaded launch settings. Your project and reviewed plan stay here; the agent starts with no earlier conversation.</p><label><input id="reconnection-consent" type="checkbox"> Start a new agent conversation</label><button id="reconnection-start" type="button">Reconnect agent</button><p id="reconnection-result" class="muted"></p></section>
+        <div class="control-rail"><section class="task-overview" aria-label="Current task status"><p class="eyebrow">LIVE TASK</p><h2 id="task-title">Ready when you are</h2><p id="task-detail">A completed task and an open session are different states.</p><button id="active-preview-stop" type="button" class="cancel" hidden>Stop earlier preview link</button><p id="live-task-timing" class="muted" hidden></p><p id="metric-activity" class="muted" hidden></p><section id="agent-reconnection" hidden aria-live="polite"><h3>Recover your agent</h3><p id="reconnection-detail">Reconnect the original project agent with its loaded launch settings. Your project and reviewed plan stay here; the agent starts with no earlier conversation.</p><label><input id="reconnection-consent" type="checkbox"> Start a new agent conversation</label><button id="reconnection-start" type="button">Reconnect agent</button><p id="reconnection-result" class="muted"></p></section>
         <section id="tool-activity" class="tool-activity" hidden><h3>Agent tool activity</h3><p id="tool-summary" class="muted"></p><ol id="tool-calls"></ol><p id="tool-limit" class="muted" hidden>Activity limit reached. Additional calls are omitted.</p><p class="muted">Last reported states; execution is not independently verified.</p></section><p class="muted">Tokens and cost: not reported.</p><div class="task-step"><span aria-hidden="true">◈</span><span id="task-phase">Waiting for your instruction</span></div></section>
     <aside id="trusted-session" hidden aria-live="polite">
       <div class="trusted-heading">

@@ -61,11 +61,12 @@ def run(args):
                     def api(path, body=None):
                         headers={'Authorization':'Bearer '+token}
                         return page.request.get(base+path,headers=headers) if body is None else page.request.post(base+path,headers=headers,data=body)
-                    expect(page.locator('#result-preview-panel')).to_be_visible()
+                    expect(page.locator('#result-preview-panel')).to_be_hidden()
                     expect(page.locator('#result-preview-start')).to_be_disabled()
                     assert page.request.post(base+'api/conversation/result',data={}).status == 401
                     page.locator('#conversation-input').fill('Preview fixture only: no model or project edits.')
                     page.locator('#conversation-submit').click();expect(page.locator('#conversation-state')).to_have_text('completed',timeout=15000)
+                    page.locator('#outcome-preview').click()
                     expect(page.locator('#result-preview-start')).to_be_disabled()
                     page.locator('#result-preview-consent').check();page.locator('#result-preview-start').click()
                     expect(page.locator('#result-preview-open')).to_be_visible(timeout=15000)
@@ -100,6 +101,7 @@ def run(args):
                     expect(page.locator('#result-preview-status')).to_contain_text('Earlier task',timeout=10000)
                     # Each preview has a fresh browser origin, including after a new task.
                     app.evaluate("document.cookie='preview_origin_sentinel=PRIVATE; Domain=localhost; Path=/'")
+                    page.locator('#outcome-preview').click()
                     page.locator('#result-preview-consent').check();page.locator('#result-preview-start').click()
                     expect(page.locator('#result-preview-open')).not_to_have_attribute('href',original_url,timeout=10000)
                     expect(page.locator('#result-preview-open')).to_be_visible()
@@ -109,7 +111,18 @@ def run(args):
                     current=api('api/conversation').json()['result_preview']['latest'];assert current['fingerprint']!=job['fingerprint']
                     assert api('api/conversation/result',{'request_id':job['request_id'],'turn_id':job['turn_id'],'confirm_execution':True}).status==409
                     page.screenshot(path=str(args.output/f'host-{width}.png'),full_page=True)
-                    page.locator('#result-preview-stop').click();expect(page.locator('#result-preview-status')).to_contain_text('stopped',timeout=10000)
+                    # Display fixture only: retain the real host lease while a later task looks active.
+                    def active_display(route):
+                        response=route.fetch(); data=response.json()
+                        data['active_turn_id']=data['turns'][-1]['turn_id']; data['turns'][-1]['status']='running'
+                        route.fulfill(response=response,json=data)
+                    page.route('**/api/conversation',active_display)
+                    expect(page.locator('#active-preview-stop')).to_be_visible(timeout=10000)
+                    assert page.evaluate('document.documentElement.scrollWidth<=innerWidth')
+                    page.locator('#active-preview-stop').click()
+                    expect(page.locator('#result-preview-status')).to_contain_text('stopped',timeout=10000)
+                    page.unroute('**/api/conversation',active_display)
+                    expect(page.locator('#conversation-state')).to_have_text('completed',timeout=10000)
                     expect(page.locator('#result-preview-open')).to_be_hidden()
                     terminal=api('api/conversation/result',{'request_id':current['request_id'],'turn_id':current['turn_id'],'confirm_execution':True}).json()['result_preview']['latest'];assert terminal['status']=='stopped' and 'url' not in terminal
                     assert page.evaluate('document.documentElement.scrollWidth<=innerWidth')

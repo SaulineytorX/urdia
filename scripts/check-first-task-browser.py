@@ -61,7 +61,7 @@ def run(args):
                 page.locator('[data-view="setup"]').first.click()
                 expect(page.locator('#first-run-check-status')).to_contain_text('independent checks have not run')
                 page.locator('[data-view="workspace"]').first.click()
-                page.locator('#verification-review').evaluate('n=>n.open=true')
+                page.locator('#outcome-check').click()
                 page.locator('#verification-consent').check()
                 page.locator('#verification-run').click()
                 expect(page.locator('#verification-status')).to_contain_text('Calculator checks passed', timeout=20000)

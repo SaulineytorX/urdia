@@ -592,3 +592,16 @@ After a completed task, use **Open your web result** in Conversation to prepare
 and open a trusted static project in a separate tab. Linux/WSL only; requires
 `index.html` at the workspace root. Nothing is installed or built. Review the
 [preview guide](result-preview.md) for consent, temporary storage and limits.
+
+## From a finished task to your next action
+
+Conversation brings the latest task's outcome next to its response. Agent
+completion and independent check results have separate states. Earlier checks do
+not certify a later task, and a web preview is not a check pass.
+
+Use the result actions to review the existing preview or check controls, or focus
+the composer to request a change. Opening those controls starts no work. Your
+current draft is preserved; sending the next task, running checks and preparing a
+trusted browser-code preview still require their existing explicit actions.
+Technical details remain available without crowding the first-task empty state.
+See [ADR0053](adr/0053-contextual-task-outcome.md).

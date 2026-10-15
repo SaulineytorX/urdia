@@ -532,6 +532,450 @@
     finally { resultPreviewSending = false; if (!stopped) renderResultPreview(latestConversationSnapshot); }
   });
 
+// BEGIN task outcome projection
+function taskOutcome(snapshot) {
+  const base = {
+    visible: false,
+    turnId: null,
+    outcomeState: "hidden",
+    title: "Task finished",
+    description: "",
+    agentLabel: "Idle",
+    agentTone: "neutral",
+    checkLabel: "No checks run",
+    checkTone: "neutral",
+    checkMeta: "Explicit check controls",
+    previewMeta: "Temporary private-origin capture",
+    previewVisible: false,
+    previewDisabled: true,
+    previewActionLabel: "Web preview",
+    checkVisible: false,
+    checkDisabled: true,
+    checkActionLabel: "Check result",
+    changeDisabled: true,
+    currentCheckPassed: false,
+    currentPreviewReady: false
+  };
+
+  if (!snapshot || typeof snapshot !== "object") {
+    return base;
+  }
+
+  const turns = Array.isArray(snapshot.turns) ? snapshot.turns : [];
+  if (turns.length === 0) {
+    return base;
+  }
+
+  const latest = turns[turns.length - 1];
+  if (!latest || typeof latest !== "object") {
+    return base;
+  }
+
+  const latestStatus = String(latest.status || "");
+  const isTerminal =
+    latestStatus === "completed" ||
+    latestStatus === "failed" ||
+    latestStatus === "cancelled";
+  const activeTurnId =
+    typeof snapshot.active_turn_id === "string" && snapshot.active_turn_id.length > 0
+      ? snapshot.active_turn_id
+      : null;
+
+  if (!isTerminal || activeTurnId !== null) {
+    return base;
+  }
+
+  const turnId = typeof latest.turn_id === "string" ? latest.turn_id : null;
+  if (!turnId) return base;
+  base.visible = true;
+  base.turnId = turnId;
+
+  if (latestStatus === "completed") {
+    base.agentLabel = "Completed";
+    base.agentTone = "success";
+    base.outcomeState = "completed";
+    base.title = "Agent finished the task";
+  } else if (latestStatus === "failed") {
+    base.agentLabel = "Failed";
+    base.agentTone = "danger";
+    base.outcomeState = "failed";
+    base.title = "Task ended with an error";
+  } else {
+    base.agentLabel = "Cancelled";
+    base.agentTone = "warning";
+    base.outcomeState = "cancelled";
+    base.title = "Task was cancelled";
+  }
+
+  const verification =
+    snapshot.verification && typeof snapshot.verification === "object"
+      ? snapshot.verification
+      : null;
+  const verificationEnabled = verification !== null;
+  const verificationActive = Boolean(verification && verification.active);
+  const vJob =
+    verification && verification.latest && typeof verification.latest === "object"
+      ? verification.latest
+      : null;
+
+  base.checkVisible = verificationEnabled;
+  base.checkDisabled = !verificationEnabled;
+
+  let checkSummaryNote = "No verification checks have been run for this task yet.";
+
+  if (!verificationEnabled) {
+    base.checkLabel = "Checks unavailable";
+    base.checkTone = "neutral";
+    base.checkMeta = "Verification not configured";
+    checkSummaryNote = "Verification checks are not enabled in this session.";
+  } else if (!vJob) {
+    if (verificationActive) {
+      base.checkLabel = "Running checks";
+      base.checkTone = "info";
+      base.checkActionLabel = "View running checks";
+      base.checkMeta = "Verification in progress";
+      checkSummaryNote = "Verification checks are currently running.";
+    } else {
+      base.checkLabel = "No checks run";
+      base.checkTone = "neutral";
+      base.checkActionLabel = "Check result";
+      base.checkMeta = "Ready to run verification";
+    }
+  } else {
+    const jobStatus = String(vJob.status || "");
+    const jobTurnId = typeof vJob.turn_id === "string" ? vJob.turn_id : null;
+    const isJobForCurrentTurn = Boolean(turnId && jobTurnId === turnId);
+    const isStale = Boolean(vJob.stale) || !isJobForCurrentTurn;
+    const report =
+      vJob.report && typeof vJob.report === "object" ? vJob.report : null;
+    const contractMatches = Boolean(
+      report &&
+        typeof vJob.contract === "string" &&
+        vJob.contract.length > 0 &&
+        report.contract === vJob.contract
+    );
+    const strictPass =
+      latestStatus === "completed" &&
+      !activeTurnId &&
+      isJobForCurrentTurn &&
+      !vJob.stale &&
+      jobStatus === "passed" &&
+      Boolean(report) &&
+      report.status === "passed" &&
+      report.acceptance_files_unchanged === true &&
+      contractMatches;
+
+    if (jobStatus === "queued" || jobStatus === "running" || jobStatus === "cancelling" || verificationActive) {
+      base.checkLabel = isStale ? "Earlier checks running" : "Running checks";
+      base.checkTone = "info";
+      base.checkActionLabel = "View running checks";
+      base.checkMeta = "Verification in progress";
+      checkSummaryNote = "Verification checks are in progress.";
+    } else if (strictPass) {
+      base.currentCheckPassed = true;
+      base.checkLabel = "Checks passed";
+      base.checkTone = "success";
+      base.checkActionLabel = "Review check report";
+      base.checkMeta = "Selected checks passed";
+      checkSummaryNote = "Selected checks passed for this task. Review their scope before relying on the result.";
+    } else if (isStale) {
+      base.checkLabel = "Earlier checks";
+      base.checkTone = "warning";
+      base.checkActionLabel = "Check this task";
+      base.checkMeta = "Last check result is from an earlier state";
+      checkSummaryNote = "Recorded checks belong to an earlier task; review and run checks for this task.";
+    } else if (jobStatus === "unavailable") {
+      base.checkLabel = "Checks unavailable";
+      base.checkTone = "neutral";
+      base.checkActionLabel = "Review check setup";
+      base.checkMeta = "Verification unavailable";
+      checkSummaryNote = "Verification checks reported unavailable for this task.";
+    } else if (jobStatus === "cancelled") {
+      base.checkLabel = "Checks cancelled";
+      base.checkTone = "warning";
+      base.checkActionLabel = "Run checks again";
+      base.checkMeta = "Last check run was cancelled";
+      checkSummaryNote = "The last verification run for this task was cancelled.";
+    } else if (jobStatus === "failed" || (report && report.status === "failed")) {
+      base.checkLabel = "Checks failed";
+      base.checkTone = "danger";
+      base.checkActionLabel = "Inspect failed checks";
+      base.checkMeta = "Configured contract reported failures";
+      checkSummaryNote = "Verification checks failed for the current task. Inspect the check report or request a fix.";
+    } else {
+      base.checkLabel = "Check report incomplete";
+      base.checkTone = "warning";
+      base.checkActionLabel = "Inspect check report";
+      base.checkMeta = "Unverified or mismatched report";
+      checkSummaryNote = "The verification report did not confirm an unchanged contract pass.";
+    }
+  }
+
+  const preview =
+    snapshot.result_preview && typeof snapshot.result_preview === "object"
+      ? snapshot.result_preview
+      : null;
+  const previewEnabled = preview !== null;
+  const previewPreparing = Boolean(preview && preview.preparing);
+  const pLatest =
+    preview && preview.latest && typeof preview.latest === "object"
+      ? preview.latest
+      : null;
+
+  const retainedPreview = pLatest && ["ready", "queued", "preparing"].includes(pLatest.status);
+  base.previewVisible = previewEnabled && (latestStatus === "completed" || Boolean(retainedPreview));
+  base.previewDisabled = !base.previewVisible;
+
+  let previewSummaryNote = "";
+  if (base.previewVisible) {
+    if (previewPreparing) {
+      base.previewActionLabel = "Preparing preview...";
+      base.previewMeta = "Capturing temporary preview";
+      previewSummaryNote = "A temporary result preview is being prepared.";
+    } else if (!pLatest) {
+      base.previewActionLabel = "Web preview";
+      base.previewMeta = "Private link · 15 minutes";
+    } else {
+      const pStatus = String(pLatest.status || "");
+      const isCurrentTask =
+        pLatest.current_task === true && Boolean(turnId) && pLatest.turn_id === turnId;
+
+      if (!isCurrentTask) {
+        base.previewActionLabel = latestStatus === "completed" ? "Prepare new preview" : "Manage earlier preview";
+        base.previewMeta = "Earlier preview on record";
+        previewSummaryNote = "An earlier preview exists from a previous task; prepare a fresh preview to view current changes.";
+      } else if (pStatus === "ready" && latestStatus === "completed" && resultPreviewUrl(pLatest.url)) {
+        base.currentPreviewReady = true;
+        base.previewActionLabel = "View web result";
+        const mins =
+          typeof pLatest.expires_in_seconds === "number" && pLatest.expires_in_seconds > 0
+            ? Math.max(1, Math.ceil(pLatest.expires_in_seconds / 60))
+            : null;
+        base.previewMeta = mins
+          ? "Current preview ready (~" + mins + "m remaining)"
+          : "Current preview ready";
+        previewSummaryNote = "A temporary preview link is ready for this task.";
+      } else if (pStatus === "queued" || pStatus === "preparing") {
+        base.previewActionLabel = "Preparing preview...";
+        base.previewMeta = "Capturing temporary preview";
+        previewSummaryNote = "A temporary result preview is being prepared.";
+      } else if (pStatus === "expired") {
+        base.previewActionLabel = "Prepare new preview";
+        base.previewMeta = "Previous preview link expired";
+        previewSummaryNote = "The temporary preview link for this task expired; you can prepare a new one.";
+      } else if (pStatus === "stopped") {
+        base.previewActionLabel = "Prepare new preview";
+        base.previewMeta = "Preview link stopped";
+        previewSummaryNote = "The temporary preview link was stopped.";
+      } else if (pStatus === "unavailable") {
+        base.previewActionLabel = "Preview details";
+        base.previewMeta = "Preview unavailable for last capture";
+        previewSummaryNote = "Result preview was unavailable for the last capture attempt.";
+      } else {
+        base.previewActionLabel = "Web preview";
+      }
+    }
+  }
+
+  if (latestStatus === "completed") {
+    if (base.currentCheckPassed) {
+      base.outcomeState = "verified";
+      base.title = "Agent finished. Checks passed.";
+    }
+    base.description = previewSummaryNote
+      ? checkSummaryNote + " " + previewSummaryNote
+      : checkSummaryNote;
+  } else if (latestStatus === "failed") {
+    const errText =
+      typeof latest.error === "string" && latest.error.trim().length > 0
+        ? latest.error.trim()
+        : "The agent reported a failure before completing the task.";
+    base.description = errText + " You can inspect details or request a change below.";
+  } else {
+    base.description = "This task was cancelled before completion. You can ask for a change or follow up in the composer below.";
+  }
+
+  const hostBusy = Boolean(activeTurnId) || verificationActive || previewPreparing || snapshot.reconnection?.status === "reconnecting";
+  base.changeDisabled = !isTerminal || hostBusy;
+
+  return base;
+}
+// END task outcome projection
+
+let outcomeLastTurnId = null;
+let outcomeListenersBound = false;
+
+function bindTaskOutcomeListeners() {
+  if (outcomeListenersBound) {
+    return;
+  }
+  const previewBtn = document.getElementById("outcome-preview");
+  const checkBtn = document.getElementById("outcome-check");
+  const changeBtn = document.getElementById("outcome-change");
+
+  if (!previewBtn || !checkBtn || !changeBtn) {
+    return;
+  }
+  outcomeListenersBound = true;
+
+  previewBtn.addEventListener("click", () => {
+    const details = document.getElementById("outcome-preview-details");
+    if (details) {
+      details.hidden = false;
+      details.open = true;
+    }
+    const openLink = document.getElementById("result-preview-open");
+    const prepareBtn = document.getElementById("result-preview-start");
+    const consentBox = document.getElementById("result-preview-consent");
+    let target = null;
+    if (openLink && !openLink.hidden && openLink.getAttribute("href")) {
+      target = openLink;
+    } else if (consentBox && !consentBox.disabled && !consentBox.checked) {
+      target = consentBox;
+    } else if (prepareBtn && !prepareBtn.disabled) {
+      target = prepareBtn;
+    } else {
+      target = openLink || prepareBtn || consentBox || details;
+    }
+    if (target && typeof target.focus === "function") {
+      target.scrollIntoView({ block: "nearest", behavior: "smooth" });
+      target.focus();
+    }
+  });
+
+  checkBtn.addEventListener("click", () => {
+    const details = document.getElementById("outcome-check-details");
+    if (details) {
+      details.hidden = false;
+      details.open = true;
+    }
+    const reviewDetails = document.getElementById("verification-review");
+    if (reviewDetails && "open" in reviewDetails) {
+      reviewDetails.open = true;
+    }
+    const contractSelect = document.getElementById("verification-contract");
+    const startBtn = document.getElementById("verification-run");
+    const target = contractSelect || startBtn || details;
+    if (target && typeof target.focus === "function") {
+      target.scrollIntoView({ block: "nearest", behavior: "smooth" });
+      target.focus();
+    }
+  });
+
+  changeBtn.addEventListener("click", () => {
+    const input = document.getElementById("conversation-input");
+    if (input) {
+      input.scrollIntoView({ block: "nearest", behavior: "smooth" });
+      input.focus();
+    }
+  });
+}
+
+function renderTaskOutcome(snapshot) {
+  bindTaskOutcomeListeners();
+  const section = document.getElementById("task-outcome");
+  if (!section) {
+    return;
+  }
+
+  const state = taskOutcome(snapshot);
+  const hostStopped = typeof stopped === "boolean" ? stopped : false;
+
+  if (!state.visible || hostStopped) {
+    section.hidden = true;
+    section.setAttribute("data-outcome-state", "hidden");
+    return;
+  }
+
+  section.hidden = false;
+  section.setAttribute("data-outcome-state", state.outcomeState);
+
+  const previewDetails = document.getElementById("outcome-preview-details");
+  const checkDetails = document.getElementById("outcome-check-details");
+  const technicalDetails = document.getElementById("outcome-technical");
+
+  if (state.turnId !== outcomeLastTurnId) {
+    outcomeLastTurnId = state.turnId;
+    if (previewDetails) {
+      previewDetails.open = false;
+    }
+    if (checkDetails) {
+      checkDetails.open = false;
+    }
+    if (technicalDetails) {
+      technicalDetails.open = false;
+    }
+  }
+
+  const titleEl = document.getElementById("outcome-title");
+  if (titleEl) {
+    titleEl.textContent = state.title;
+  }
+
+  const descEl = document.getElementById("outcome-description");
+  if (descEl) {
+    descEl.textContent = state.description;
+  }
+
+  const agentChip = document.getElementById("outcome-agent-state");
+  if (agentChip) {
+    agentChip.textContent = state.agentLabel;
+    agentChip.setAttribute("data-tone", state.agentTone);
+  }
+
+  const checkChip = document.getElementById("outcome-check-state");
+  if (checkChip) {
+    checkChip.textContent = state.checkLabel;
+    checkChip.setAttribute("data-tone", state.checkTone);
+  }
+
+  const previewMeta = document.getElementById("outcome-preview-meta");
+  if (previewMeta) {
+    previewMeta.textContent = state.previewMeta;
+  }
+
+  const checkMeta = document.getElementById("outcome-check-meta");
+  if (checkMeta) {
+    checkMeta.textContent = state.checkMeta;
+  }
+
+  const previewBtn = document.getElementById("outcome-preview");
+  const previewLabel = document.getElementById("outcome-preview-label");
+  if (previewBtn) {
+    previewBtn.hidden = !state.previewVisible;
+    previewBtn.disabled = state.previewDisabled || hostStopped;
+  }
+  if (previewLabel) {
+    previewLabel.textContent = state.previewActionLabel;
+  }
+  if (previewDetails) {
+    previewDetails.hidden = !state.previewVisible;
+  }
+
+  const checkBtn = document.getElementById("outcome-check");
+  const checkLabel = document.getElementById("outcome-check-label");
+  if (checkBtn) {
+    checkBtn.hidden = !state.checkVisible;
+    checkBtn.disabled = state.checkDisabled || hostStopped;
+  }
+  if (checkLabel) {
+    checkLabel.textContent = state.checkActionLabel;
+  }
+  if (checkDetails) {
+    checkDetails.hidden = !state.checkVisible;
+  }
+
+  const changeBtn = document.getElementById("outcome-change");
+  if (changeBtn) {
+    changeBtn.disabled = state.changeDisabled || hostStopped;
+  }
+}
+
+  document.getElementById("active-preview-stop").addEventListener("click", () => {
+    // The explicit button reuses the existing same-ID stop handler, never prepares.
+    document.getElementById("result-preview-stop").click();
+  });
+
   let verificationSending = false;
   let verificationTarget = null;
   const verificationContracts = {
@@ -1112,6 +1556,8 @@
     }
     const metrics = latest && snapshot.turn_metrics?.[latest.turn_id];
     document.getElementById("task-metrics").hidden = !metrics;
+    const liveTiming = document.getElementById("live-task-timing");
+    liveTiming.hidden = !active || !metrics;
     const activity = document.getElementById("metric-activity");
     activity.hidden = !metrics;
     if (metrics) {
@@ -1123,6 +1569,7 @@
         "metric-updates": String(metrics.text_updates),
         "metric-chars": String(metrics.response_chars)
       })) document.getElementById(id).textContent = value;
+      liveTiming.textContent = `Elapsed: ${duration(metrics.elapsed_ms)} · first text: ${duration(metrics.first_text_ms)}`;
       activity.textContent = waitingForPermission ? "Waiting for your permission decision." : phase === "cancelling"
         ? "Waiting for the agent to acknowledge cancellation." : active
         ? (metrics.text_updates ? "Agent text received; the turn is still active." : "Waiting for agent text.")
@@ -1153,6 +1600,10 @@
     conversationCancel.disabled = !active || active.status === "cancelling";
     renderVerification(snapshot);
     renderResultPreview(snapshot);
+    renderTaskOutcome(snapshot);
+    const activePreviewStop = document.getElementById("active-preview-stop");
+    activePreviewStop.hidden = !active || snapshot.result_preview?.latest?.status !== "ready";
+    activePreviewStop.disabled = resultPreviewSending;
     taskPlan.observe(snapshot);
     renderProjectSummary(snapshot);
     conversationSubmit.disabled = Boolean(active) || Boolean((snapshot.verification?.active || snapshot.result_preview?.preparing)) || recovering || (recovery?.status === "failed" && !snapshot.profile_selection?.selected_profile) || conversationSubmitting || automaticRoute || selectingProfile;

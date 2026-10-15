@@ -691,13 +691,13 @@ def verify_calculator_browser(browser, args):
         with session(args.urdia, args.fake_agent, ["--stream"], verification=mode) as url:
             page = browser.new_page(viewport={"width": 1440, "height": 1100})
             page.goto(url)
-            expect(page.locator("#verification-panel")).to_be_visible()
+            expect(page.locator("#verification-panel")).to_be_hidden()
             expect(page.locator("#verification-run")).to_be_disabled()
             page.locator("#conversation-input").fill("Offline calculator acceptance fixture; no AI edits.")
             page.locator("#conversation-submit").click()
             expect(page.locator("#conversation-state")).to_have_text("completed", timeout=15000)
             expect(page.locator("#verification-run")).to_be_disabled()
-            page.locator("#verification-review summary").click()
+            page.locator("#outcome-check").click()
             if mode.startswith("five"):
                 page.locator("#verification-contract").select_option("calculator-five-v1")
                 page.locator("#verification-draft").click()
@@ -750,7 +750,7 @@ def verify_python_project_browser(browser,args):
             page.locator("#conversation-input").fill("Review this existing tax project; offline fixture")
             page.locator("#conversation-submit").click()
             expect(page.locator("#conversation-state")).to_have_text("completed",timeout=15000)
-            page.locator("#verification-review").evaluate("el=>el.open=true")
+            page.locator("#outcome-check").click()
             page.locator("#verification-contract").select_option("python-unittest-v1")
             expect(page.locator("#verification-spec")).to_contain_text("no dependencies are installed",ignore_case=True)
             expect(page.locator("#verification-consent")).not_to_be_checked()
@@ -797,7 +797,7 @@ def verify_project_summary(browser,args):
         expect(page.locator("#summary-reviewed")).to_have_text("0/2")
         expect(page.locator("#summary-checked")).to_have_text("0/2")
         assert page.locator("#project-summary img").count()==0
-        page.locator("#verification-review").evaluate("el=>el.open=true")
+        page.locator("#outcome-check").click()
         page.locator("#verification-consent").check();page.locator("#verification-run").click()
         expect(page.locator("#verification-status")).to_contain_text("Calculator checks passed",timeout=15000)
         expect(page.locator("#summary-checked")).to_have_text("1/2")
@@ -1436,7 +1436,8 @@ def run(args):
                 page.locator("#conversation-submit").click()
                 expect(page.locator(".conversation-turn")).to_have_count(2)
                 expect(page.locator("#task-title")).to_have_text("Task completed", timeout=15000)
-                expect(page.locator("#conversation > #task-metrics")).to_be_visible()
+                page.locator("#outcome-technical > summary").click()
+                expect(page.locator("#outcome-technical #task-metrics")).to_be_visible()
                 assert page.locator("#task-metrics > div").first.evaluate("n=>getComputedStyle(n).display") == "block", "metric cards lost vertical layout"
                 expect(page.locator("#metric-updates")).to_have_text(re.compile(r"[1-9][0-9]*"))
                 expect(page.locator("#metric-first-text")).to_have_text(re.compile(r"(?:[0-9]+ ms|[0-9]+\.[0-9] s)"))

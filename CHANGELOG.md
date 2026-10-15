@@ -8,6 +8,10 @@ public releases begin.
 
 ## [Unreleased]
 
+- Bring task completion, scoped check status and next actions into a contextual
+  result card below the response. Keep preview/check consent, preserve change
+  drafts, and disclose metrics and technical details progressively.
+
 - Add explicitly consented static web-result previews on Linux/WSL, using bounded
   immutable captures, a separate fresh localhost origin, private expiring links
   and replay-safe preparation. No build, install or extra model call is run.
