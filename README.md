@@ -51,6 +51,8 @@ sandbox. Its browser listens on loopback with a private access token.
 
 Try [repairing an existing project](examples/repair-name/README.md).
 [The paired pilot](docs/repair-pilot.md) records verified results and limits.
+[The varied routing sample](docs/routing-sample.md) adds fixed interval and
+dependency tasks, alternating order and repeated observations.
 
 ## Learn and contribute
 

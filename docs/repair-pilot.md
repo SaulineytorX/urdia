@@ -51,3 +51,6 @@ Next evaluation: varied fixed tasks, repeated and alternating/randomized order,
 all failures and refusals retained, fixed eligible profiles, and observed usage
 when available. No reliability percentage or savings claim should be made from
 this example. Automatic plan loops and production routing quality remain unproven.
+
+A subsequent [varied routing sample](routing-sample.md) freezes two additional
+task families with counterbalanced paired repeats. It remains exploratory.

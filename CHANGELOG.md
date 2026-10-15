@@ -8,6 +8,9 @@ public releases begin.
 
 ## [Unreleased]
 
+- Add fixed interval/dependency routing examples, deterministic protected checks
+  and a bounded repeated Manual/Jev sample with explicit limits.
+
 - Add a first-task setup overview with observed project/agent/profile/check states,
   inert two-file practice-task preparation, existing-draft preservation, renewed
   check consent and explicit check scope.

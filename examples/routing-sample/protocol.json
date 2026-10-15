@@ -1,0 +1,62 @@
+{
+  "schema": "urdia.routing-sample-protocol/v1",
+  "frozen_before_task_calls": true,
+  "source_commit": "296c6196859f8249be41a73caf29c607f11a1d2e",
+  "fixture_sha256": "6b00bf30cde20f8a84a54bbb8bbd0d64e10bbf0c71c2e5bdc6bee7318cccda56",
+  "checker_sha256": "7721c3406fb88bae17ae0fef6438013a9dc42cae47ecdf2c4fbd1a2c2c6b4a85",
+  "order": [
+    {
+      "case": "intervals",
+      "repeat": 1,
+      "condition": "manual"
+    },
+    {
+      "case": "intervals",
+      "repeat": 1,
+      "condition": "jev"
+    },
+    {
+      "case": "intervals",
+      "repeat": 2,
+      "condition": "jev"
+    },
+    {
+      "case": "intervals",
+      "repeat": 2,
+      "condition": "manual"
+    },
+    {
+      "case": "dependencies",
+      "repeat": 1,
+      "condition": "manual"
+    },
+    {
+      "case": "dependencies",
+      "repeat": 1,
+      "condition": "jev"
+    },
+    {
+      "case": "dependencies",
+      "repeat": 2,
+      "condition": "jev"
+    },
+    {
+      "case": "dependencies",
+      "repeat": 2,
+      "condition": "manual"
+    }
+  ],
+  "eligible_profiles": [
+    "codex-low",
+    "codex-medium"
+  ],
+  "default_profile": "codex-low",
+  "maximum_coding_submissions": 8,
+  "maximum_jev_routing_jobs": 4,
+  "maximum_jev_connection_tests": 4,
+  "maximum_edit_approval_batches_per_task": 4,
+  "automatic_retries": false,
+  "remote_model_independently_verified": false,
+  "tokens": null,
+  "cost": null
+}
